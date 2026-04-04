@@ -20,12 +20,17 @@
                 <a href="#" id="btn-inicio">Inicio</a>
                 <a href="#" id="btn-peliculas">Peliculas</a>
                 <a href="milista/" id="btn-mi-lista">Mi lista</a>
-                <a href="#request-section" id="btn-solicitar">Pedir pelicula</a>
-
                 <div class="dropdown">
                     <a href="#" id="btn-generos">Generos ▾</a>
                     <div class="dropdown-menu" id="menu-generos"></div>
                 </div>
+                <span class="nav-divider" aria-hidden="true"></span>
+                <a href="#request-section" id="btn-solicitar">Pedir pelicula</a>
+                <a href="#" id="btn-notificaciones" aria-label="Notificaciones">
+                    <span class="notifications-label">Notificaciones</span>
+                    <span class="notifications-icon" aria-hidden="true">🔔</span>
+                    <span id="notifications-count" class="notifications-count">0</span>
+                </a>
             </nav>
         </div>
         <div class="search-box">
@@ -33,6 +38,18 @@
             <div class="search-results"></div>
         </div>
     </header>
+
+    <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
+    <section id="notifications-panel" class="notifications-panel" hidden>
+        <div class="notifications-panel-head">
+            <div>
+                <span class="notifications-eyebrow">Avisos</span>
+                <h2>Notificaciones</h2>
+            </div>
+            <button type="button" id="notifications-close" class="notifications-close" aria-label="Cerrar notificaciones">×</button>
+        </div>
+        <div id="notifications-list" class="notifications-list"></div>
+    </section>
 
     <section class="hero">
         <div id="bg1" class="hero-bg"></div>

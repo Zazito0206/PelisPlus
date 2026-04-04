@@ -7,11 +7,17 @@ const menuGeneros = document.getElementById("menu-generos");
 const btnInicio = document.getElementById("btn-inicio");
 const btnPeliculas = document.getElementById("btn-peliculas");
 const btnSolicitar = document.getElementById("btn-solicitar");
+const btnNotificaciones = document.getElementById("btn-notificaciones");
+const notificationsCount = document.getElementById("notifications-count");
 const heroTitle = document.getElementById("hero-title");
 const heroDesc = document.getElementById("hero-desc");
 const heroBtn = document.getElementById("hero-btn");
 const menuToggle = document.getElementById("menu-toggle");
 const mainNav = document.getElementById("main-nav");
+const toastStack = document.getElementById("toast-stack");
+const notificationsPanel = document.getElementById("notifications-panel");
+const notificationsList = document.getElementById("notifications-list");
+const notificationsClose = document.getElementById("notifications-close");
 const requestSection = document.getElementById("request-section");
 const requestForm = document.getElementById("request-form");
 const requestStatus = document.getElementById("request-status");
@@ -24,6 +30,34 @@ const requestCountry = document.getElementById("request-country");
 const requestCountryCode = document.getElementById("request-country-code");
 const requestWhatsapp = document.getElementById("request-whatsapp");
 const requestEmail = document.getElementById("request-email");
+
+const TOAST_MESSAGES = [
+  {
+    id: "request-tip",
+    title: "Tip rapido",
+    message: "Recuerda que puedes pedir una pelicula si no la encuentras en el catalogo.",
+    tone: "info",
+    action: "request"
+  },
+  {
+    id: "list-tip",
+    title: "Mi lista",
+    message: "Guarda tus favoritas en Mi lista para encontrarlas mas rapido despues.",
+    tone: "accent",
+    action: "list"
+  },
+  {
+    id: "search-tip",
+    title: "Busca por genero",
+    message: "Si no recuerdas el titulo exacto, revisa Generos o usa el buscador.",
+    tone: "info",
+    action: "search"
+  }
+];
+
+let toastTimeoutId = 0;
+let toastMessageIndex = 0;
+let notificationsStore = [];
 
 function renderEstadoPagina(mensaje, tipo = "cargando") {
   contenedor.innerHTML = `<div class="estado-pagina estado-${tipo}">${mensaje}</div>`;
@@ -92,6 +126,22 @@ function scrollToRequests() {
 
   requestSection.hidden = false;
   requestSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function openNotificationsPanel() {
+  if (!notificationsPanel) {
+    return;
+  }
+
+  notificationsPanel.hidden = false;
+}
+
+function closeNotificationsPanel() {
+  if (!notificationsPanel) {
+    return;
+  }
+
+  notificationsPanel.hidden = true;
 }
 
 function closeRequestSection() {
@@ -165,6 +215,163 @@ function buildRequestContact() {
   }
 
   return "";
+}
+
+function dismissToast(toast, notification) {
+  if (!toast) {
+    return;
+  }
+
+  if (notification && !toast.dataset.archived) {
+    archiveNotification(notification);
+    toast.dataset.archived = "true";
+  }
+
+  toast.classList.add("is-leaving");
+  window.setTimeout(() => {
+    toast.remove();
+  }, 260);
+}
+
+function runNotificationAction(action) {
+  if (action === "request") {
+    scrollToRequests();
+    return;
+  }
+
+  if (action === "list") {
+    window.location.href = "milista/";
+    return;
+  }
+
+  if (action === "search") {
+    searchInput?.focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+}
+
+function updateNotificationsCount() {
+  if (!notificationsCount) {
+    return;
+  }
+
+  const total = notificationsStore.length;
+  notificationsCount.textContent = String(total);
+  notificationsCount.hidden = total === 0;
+}
+
+function renderNotificationsPanel() {
+  if (!notificationsList) {
+    return;
+  }
+
+  notificationsList.innerHTML = "";
+
+  notificationsStore.forEach(item => {
+    const card = document.createElement("article");
+    card.className = `notification-card notification-${item.tone}`;
+    card.innerHTML = `
+      <button type="button" class="notification-delete" aria-label="Eliminar notificacion">×</button>
+      <button type="button" class="notification-open">
+        <span class="notification-dot"></span>
+        <div class="notification-copy">
+          <strong>${item.title}</strong>
+          <p>${item.message}</p>
+        </div>
+      </button>
+    `;
+
+    const openButton = card.querySelector(".notification-open");
+    const deleteButton = card.querySelector(".notification-delete");
+
+    openButton?.addEventListener("click", () => {
+      closeNotificationsPanel();
+      runNotificationAction(item.action);
+    });
+
+    deleteButton?.addEventListener("click", () => {
+      notificationsStore = notificationsStore.filter(entry => entry.id !== item.id);
+      updateNotificationsCount();
+      renderNotificationsPanel();
+    });
+
+    notificationsList.appendChild(card);
+  });
+}
+
+function archiveNotification(notification) {
+  if (!notification || !notification.id) {
+    return;
+  }
+
+  if (notificationsStore.some(item => item.id === notification.id)) {
+    return;
+  }
+
+  notificationsStore = [notification, ...notificationsStore];
+  updateNotificationsCount();
+  renderNotificationsPanel();
+}
+
+function addNotification(notification) {
+  return {
+    id: notification.id || `notification-${Date.now()}`,
+    title: notification.title,
+    message: notification.message,
+    tone: notification.tone || "info",
+    action: notification.action || ""
+  };
+}
+
+function showToast(notification) {
+  if (!toastStack || !notification) {
+    return;
+  }
+
+  const { title, message, tone = "info", action = "" } = notification;
+  const toast = document.createElement("article");
+  toast.className = `toast-item toast-${tone}`;
+  toast.innerHTML = `
+    <div class="toast-icon" aria-hidden="true">✓</div>
+    <button type="button" class="toast-body">
+      <strong>${title}</strong>
+      <p>${message}</p>
+      <span class="toast-progress"></span>
+    </button>
+    <button type="button" class="toast-close" aria-label="Cerrar aviso">×</button>
+  `;
+
+  const closeButton = toast.querySelector(".toast-close");
+  const bodyButton = toast.querySelector(".toast-body");
+  closeButton?.addEventListener("click", () => dismissToast(toast, notification));
+  bodyButton?.addEventListener("click", () => {
+    dismissToast(toast, notification);
+    closeNotificationsPanel();
+    runNotificationAction(action);
+  });
+
+  toastStack.appendChild(toast);
+
+  window.setTimeout(() => {
+    dismissToast(toast, notification);
+  }, 9000);
+}
+
+function queueNextToast(initialDelay = 9000) {
+  if (!toastStack) {
+    return;
+  }
+
+  if (toastTimeoutId) {
+    window.clearTimeout(toastTimeoutId);
+  }
+
+  toastTimeoutId = window.setTimeout(() => {
+    const nextNotification = addNotification(TOAST_MESSAGES[toastMessageIndex]);
+    showToast(nextNotification);
+    toastMessageIndex = (toastMessageIndex + 1) % TOAST_MESSAGES.length;
+    queueNextToast(32000);
+  }, initialDelay);
 }
 
 function toggleMobileMenu() {
@@ -516,6 +723,7 @@ function inicializarSolicitudes() {
   requestContactType?.addEventListener("change", updateRequestContactFields);
   requestCountry?.addEventListener("change", updateRequestContactFields);
   requestClose?.addEventListener("click", closeRequestSection);
+  notificationsClose?.addEventListener("click", closeNotificationsPanel);
 
   requestForm.addEventListener("submit", async event => {
     event.preventDefault();
@@ -556,6 +764,14 @@ function inicializarSolicitudes() {
       requestForm.reset();
       updateRequestContactFields();
       setRequestStatus("Solicitud enviada. Cuando la agreguen al catalogo, podran avisarte si dejaste contacto.", "ok");
+      const requestNotification = addNotification({
+        id: `request-sent-${Date.now()}`,
+        title: "Solicitud enviada",
+        message: "Tu pedido ya llego al panel. Si dejaste contacto, podran avisarte cuando este lista.",
+        tone: "success",
+        action: "request"
+      });
+      showToast(requestNotification);
     } catch (error) {
       setRequestStatus(
         error.message || "No se pudo enviar la solicitud en este momento.",
@@ -596,6 +812,19 @@ function inicializarNavegacion(data) {
     });
   }
 
+  btnNotificaciones?.addEventListener("click", event => {
+    event.preventDefault();
+    const willOpen = notificationsPanel?.hidden;
+    closeMobileMenu();
+
+    if (willOpen) {
+      openNotificationsPanel();
+      return;
+    }
+
+    closeNotificationsPanel();
+  });
+
   btnGeneros.addEventListener("click", event => {
     event.preventDefault();
     menuGeneros.style.display = menuGeneros.style.display === "grid" ? "none" : "grid";
@@ -621,6 +850,14 @@ function inicializarNavegacion(data) {
       menuGeneros.style.display = "none";
     }
 
+    if (
+      notificationsPanel &&
+      !event.target.closest("#notifications-panel") &&
+      !event.target.closest("#btn-notificaciones")
+    ) {
+      closeNotificationsPanel();
+    }
+
     if (!event.target.closest(".header-left")) {
       closeMobileMenu();
     }
@@ -634,6 +871,9 @@ function inicializarNavegacion(data) {
 async function init() {
   renderEstadoPagina("Cargando catalogo...", "cargando");
   inicializarSolicitudes();
+  notificationsStore = [];
+  updateNotificationsCount();
+  renderNotificationsPanel();
 
   try {
     const data = await window.pelisData.fetchMoviesFromSupabase();
@@ -647,6 +887,7 @@ async function init() {
     inicializarBusqueda(data);
     inicializarNavegacion(data);
     crearUI(data);
+    queueNextToast();
   } catch (error) {
     heroTitle.innerText = "No pudimos cargar Pelis+";
     heroDesc.innerText = error.message || "Intenta recargar la pagina.";
