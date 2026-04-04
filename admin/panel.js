@@ -29,6 +29,10 @@ const posterPreview = document.getElementById("poster-preview");
 const bannerPreviewWrap = document.getElementById("banner-preview-wrap");
 const bannerPreview = document.getElementById("banner-preview");
 const sessionModal = document.getElementById("session-modal");
+const deleteRequestModal = document.getElementById("delete-request-modal");
+const deleteRequestTitle = document.getElementById("delete-request-title");
+const btnDeleteRequestConfirm = document.getElementById("btn-delete-request-confirm");
+const btnDeleteRequestCancel = document.getElementById("btn-delete-request-cancel");
 const sessionCountdown = document.getElementById("session-countdown");
 const sessionPill = document.getElementById("session-pill");
 const sessionPillTime = document.getElementById("session-pill-time");
@@ -45,6 +49,7 @@ let currentView = "catalogo";
 let sessionExpiresAt = 0;
 let sessionTick = null;
 let warningVisible = false;
+let pendingRequestDelete = null;
 let imagenSourceUrl = "";
 let bannerSourceUrl = "";
 let cuevanaPageUrl = "";
@@ -320,6 +325,23 @@ async function logout() {
 function hideSessionWarning() {
   warningVisible = false;
   sessionModal.classList.add("oculto");
+}
+
+function openDeleteRequestModal(request) {
+  pendingRequestDelete = request || null;
+
+  if (deleteRequestTitle) {
+    deleteRequestTitle.textContent = request?.titulo
+      ? `Eliminar la solicitud de "${request.titulo}"?`
+      : "Quieres eliminar esta solicitud?";
+  }
+
+  deleteRequestModal?.classList.remove("oculto");
+}
+
+function closeDeleteRequestModal() {
+  pendingRequestDelete = null;
+  deleteRequestModal?.classList.add("oculto");
 }
 
 function showSessionWarning(seconds) {
@@ -708,28 +730,8 @@ function renderRequests(items) {
       await updateRequestStatus(request, "pendiente");
     });
 
-    item.querySelector('[data-action="delete"]').addEventListener("click", async () => {
-      const confirmed = window.confirm(`Eliminar la solicitud de "${request.titulo}"?`);
-
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        const { error } = await supabaseClient
-          .from("movie_requests")
-          .delete()
-          .eq("id", request.id);
-
-        if (error) {
-          throw error;
-        }
-
-        await loadRequests();
-        setEstado(`Solicitud de "${request.titulo}" eliminada.`, "ok");
-      } catch (error) {
-        setEstado(error.message || "No se pudo eliminar la solicitud.", "error");
-      }
+    item.querySelector('[data-action="delete"]').addEventListener("click", () => {
+      openDeleteRequestModal(request);
     });
 
     listaSolicitudes.appendChild(item);
@@ -977,6 +979,32 @@ btnUsarVimeus.addEventListener("click", applyVimeusUrl);
 btnExtend5.addEventListener("click", () => extendSession(5));
 btnExtend10.addEventListener("click", () => extendSession(10));
 btnSessionClose.addEventListener("click", logout);
+btnDeleteRequestCancel?.addEventListener("click", closeDeleteRequestModal);
+btnDeleteRequestConfirm?.addEventListener("click", async () => {
+  if (!pendingRequestDelete?.id) {
+    closeDeleteRequestModal();
+    return;
+  }
+
+  const request = pendingRequestDelete;
+  closeDeleteRequestModal();
+
+  try {
+    const { error } = await supabaseClient
+      .from("movie_requests")
+      .delete()
+      .eq("id", request.id);
+
+    if (error) {
+      throw error;
+    }
+
+    await loadRequests();
+    setEstado(`Solicitud de "${request.titulo}" eliminada.`, "ok");
+  } catch (error) {
+    setEstado(error.message || "No se pudo eliminar la solicitud.", "error");
+  }
+});
 buscador.addEventListener("input", () => {
   if (currentView === "solicitudes") {
     filterRequests();

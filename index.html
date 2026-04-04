@@ -70,10 +70,10 @@
                 <p>Deja el titulo y, si quieres, tu correo o WhatsApp para avisarte cuando este disponible.</p>
             </div>
 
-            <form id="request-form" class="request-form">
+            <form id="request-form" class="request-form" autocomplete="off">
                 <label class="request-full">
                     <span>Titulo de la pelicula</span>
-                    <input type="text" id="request-title" name="titulo" placeholder="Ej. Spider-Man 4" required>
+                    <input type="text" id="request-title" name="titulo" placeholder="Ej. Spider-Man 4" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
                 </label>
 
                 <div class="request-contact-block request-full">
@@ -119,14 +119,14 @@
                     <div id="request-email-fields" class="request-contact-fields" hidden>
                         <label>
                             <span>Correo</span>
-                            <input type="email" id="request-email" name="contacto_correo" placeholder="correo@ejemplo.com">
+                            <input type="email" id="request-email" name="contacto_correo" placeholder="correo@ejemplo.com" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
                         </label>
                     </div>
                 </div>
 
                 <label class="request-full">
                     <span>Detalle opcional</span>
-                    <textarea id="request-detail" name="detalle" rows="4" placeholder="Ej. La animada de 2009, en latino, o cualquier detalle que ayude a identificarla"></textarea>
+                    <textarea id="request-detail" name="detalle" rows="4" placeholder="Ej. La animada de 2009, en latino, o cualquier detalle que ayude a identificarla" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
                 </label>
 
                 <div class="request-actions">

@@ -171,6 +171,18 @@
     </div>
   </div>
 
+  <div id="delete-request-modal" class="session-modal oculto" aria-live="polite">
+    <div class="session-card request-delete-card">
+      <p class="eyebrow">Eliminar solicitud</p>
+      <h2 id="delete-request-title">Quieres eliminar esta solicitud?</h2>
+      <p class="session-copy">Esta accion quitara la solicitud del panel de forma permanente.</p>
+      <div class="session-actions">
+        <button type="button" id="btn-delete-request-confirm" class="primary">Si, eliminar</button>
+        <button type="button" id="btn-delete-request-cancel" class="ghost">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/admin/supabase-config.js"></script>
   <script src="/admin/supabase-client.js"></script>

@@ -647,6 +647,16 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.request-delete-card {
+  max-width: 460px;
+}
+
+.request-delete-card .primary {
+  background: linear-gradient(135deg, #ff8a8a, #d83a56);
+  color: #fff5f5;
+  border-color: rgba(255, 133, 133, 0.28);
+}
+
 @media (max-width: 980px) {
   .layout {
     grid-template-columns: 1fr;

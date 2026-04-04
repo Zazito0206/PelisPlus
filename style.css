@@ -1726,6 +1726,10 @@ nav a:focus-visible {
   color: #ffd0d0;
 }
 
+.oculto {
+  display: none !important;
+}
+
 @media (max-width: 1024px) {
   .request-section {
     padding: 24px 30px 6px;

@@ -772,6 +772,7 @@ function inicializarSolicitudes() {
         action: "request"
       });
       showToast(requestNotification);
+      closeRequestSection();
     } catch (error) {
       setRequestStatus(
         error.message || "No se pudo enviar la solicitud en este momento.",
