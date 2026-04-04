@@ -57,6 +57,18 @@ let vimeusGeneratedUrl = "";
 let heightSyncFrame = 0;
 
 const STORAGE_BUCKET = "movie-assets";
+const POSTER_UPLOAD_SETTINGS = {
+  maxWidth: 1200,
+  quality: 0.86,
+  mimeType: "image/jpeg",
+  extension: ".jpg"
+};
+const BANNER_UPLOAD_SETTINGS = {
+  maxWidth: 1920,
+  quality: 0.82,
+  mimeType: "image/jpeg",
+  extension: ".jpg"
+};
 const VIMEUS_DEFAULTS = {
   viewKey: "GVW7Je4obF9FT749y4y5MdUAQOVh-j4BhH05eZNGCdE",
   title: "PELIS",
@@ -81,6 +93,125 @@ function getFileExtension(filename) {
 
 function valueOf(name) {
   return form.elements[name].value.trim();
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("No se pudo leer la imagen seleccionada."));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("No se pudo procesar la imagen seleccionada."));
+    image.src = src;
+  });
+}
+
+function canvasToBlob(canvas, mimeType, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => {
+      if (!blob) {
+        reject(new Error("No se pudo optimizar la imagen."));
+        return;
+      }
+
+      resolve(blob);
+    }, mimeType, quality);
+  });
+}
+
+async function adaptImageFile(file, settings, errorLabel = "imagen") {
+  if (!file || !String(file.type || "").startsWith("image/")) {
+    return file;
+  }
+
+  const src = await readFileAsDataUrl(file);
+  const image = await loadImageElement(src);
+  const targetWidth = Math.min(image.naturalWidth || image.width, settings.maxWidth);
+
+  if (!targetWidth) {
+    throw new Error(`No se pudo calcular el tamano de la ${errorLabel}.`);
+  }
+
+  const targetHeight = Math.max(1, Math.round((image.naturalHeight || image.height) * (targetWidth / (image.naturalWidth || image.width))));
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("No se pudo preparar el optimizador del banner.");
+  }
+
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  const blob = await canvasToBlob(
+    canvas,
+    settings.mimeType,
+    settings.quality
+  );
+
+  const normalizedName = `${baseNameWithoutExtension(file.name || errorLabel)}${settings.extension}`;
+  return new File([blob], normalizedName, {
+    type: settings.mimeType,
+    lastModified: Date.now()
+  });
+}
+
+async function adaptBannerFile(file) {
+  return adaptImageFile(file, BANNER_UPLOAD_SETTINGS, "banner");
+}
+
+async function adaptPosterFile(file) {
+  return adaptImageFile(file, POSTER_UPLOAD_SETTINGS, "portada");
+}
+
+function baseNameWithoutExtension(filename) {
+  return String(filename || "archivo").replace(/\.[^.]+$/, "");
+}
+
+async function fetchRemoteFile(url) {
+  const response = await fetch(url, { mode: "cors", cache: "no-store" });
+
+  if (!response.ok) {
+    throw new Error("No se pudo descargar el banner automatico.");
+  }
+
+  const blob = await response.blob();
+  const urlPath = (() => {
+    try {
+      return new URL(url).pathname;
+    } catch {
+      return "banner.jpg";
+    }
+  })();
+
+  const extension = getFileExtension(urlPath) || ".jpg";
+  const filename = `${baseNameWithoutExtension(urlPath.split("/").pop() || "banner")}${extension}`;
+
+  return new File([blob], filename, {
+    type: blob.type || "image/jpeg",
+    lastModified: Date.now()
+  });
+}
+
+async function uploadAutoBannerFromSource(sourceUrl, movieId) {
+  const remoteFile = await fetchRemoteFile(sourceUrl);
+  return uploadAssetToSupabase(remoteFile, movieId, "banner");
+}
+
+async function uploadAutoPosterFromSource(sourceUrl, movieId) {
+  const remoteFile = await fetchRemoteFile(sourceUrl);
+  return uploadAssetToSupabase(remoteFile, movieId, "portada");
 }
 
 function setEstado(message, type = "") {
@@ -186,11 +317,13 @@ function refreshAssetPaths() {
   const bannerFile = bannerFileInput.files && bannerFileInput.files[0];
 
   if (id && imagenFile) {
-    form.elements.imagen.value = `${STORAGE_BUCKET}/${id}/portada${getFileExtension(imagenFile.name)}`;
+    form.elements.imagen.value = `${STORAGE_BUCKET}/${id}/portada${POSTER_UPLOAD_SETTINGS.extension}`;
+    posterStatus.textContent = "La portada se optimizara al guardarse para bajar peso sin perder demasiada calidad.";
   }
 
   if (id && bannerFile) {
-    form.elements.banner.value = `${STORAGE_BUCKET}/${id}/banner${getFileExtension(bannerFile.name)}`;
+    form.elements.banner.value = `${STORAGE_BUCKET}/${id}/banner${BANNER_UPLOAD_SETTINGS.extension}`;
+    bannerStatus.textContent = "El banner se adaptara automaticamente al guardarlo para que pese menos.";
   }
 }
 
@@ -484,12 +617,18 @@ async function uploadAssetToSupabase(file, movieId, baseName) {
     return "";
   }
 
-  const objectPath = buildStorageObjectPath(movieId, baseName, file.name);
+  const uploadFile = baseName === "banner"
+    ? await adaptBannerFile(file)
+    : baseName === "portada"
+      ? await adaptPosterFile(file)
+      : file;
+
+  const objectPath = buildStorageObjectPath(movieId, baseName, uploadFile.name);
   const { error: uploadError } = await supabaseClient.storage
     .from(STORAGE_BUCKET)
-    .upload(objectPath, file, {
+    .upload(objectPath, uploadFile, {
       upsert: true,
-      contentType: file.type || undefined
+      contentType: uploadFile.type || undefined
     });
 
   if (uploadError) {
@@ -508,6 +647,14 @@ async function resolveAssetUrl({ fileInput, sourceUrl, currentValue, movieId, ba
   }
 
   if (sourceUrl) {
+    if (baseName === "banner") {
+      return uploadAutoBannerFromSource(sourceUrl, movieId);
+    }
+
+    if (baseName === "portada") {
+      return uploadAutoPosterFromSource(sourceUrl, movieId);
+    }
+
     return sourceUrl;
   }
 

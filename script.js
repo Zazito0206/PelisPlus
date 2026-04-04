@@ -390,7 +390,7 @@ function crearCard(peli) {
   card.className = "card";
 
   card.innerHTML = `
-    <img src="${window.pelisData.resolveAssetUrl(peli.imagen)}" alt="${peli.titulo}" draggable="false">
+    <img src="${window.pelisData.resolveAssetUrl(peli.imagen)}" alt="${peli.titulo}" draggable="false" loading="lazy" decoding="async">
     <span>${peli.titulo}</span>
   `;
 
@@ -502,7 +502,7 @@ function esTerrorAdulto(peli) {
 }
 
 function obtenerSeccionesInicio(lista) {
-  const limitePorFila = 12;
+  const limitePorFila = 8;
   const usadas = new Set();
   const secciones = [];
   const reglas = [
@@ -617,7 +617,7 @@ function inicializarBusqueda(data) {
       item.className = "search-item";
 
       item.innerHTML = `
-        <img src="${window.pelisData.resolveAssetUrl(peli.imagen)}" alt="${peli.titulo}">
+        <img src="${window.pelisData.resolveAssetUrl(peli.imagen)}" alt="${peli.titulo}" loading="lazy" decoding="async">
         <span>${peli.titulo}</span>
       `;
 
@@ -706,7 +706,7 @@ function inicializarHero(data) {
   }
 
   cambiarHero(getRandomMovie());
-  setInterval(() => cambiarHero(getRandomMovie()), 7000);
+  setInterval(() => cambiarHero(getRandomMovie()), 20000);
 }
 
 function inicializarSolicitudes() {
