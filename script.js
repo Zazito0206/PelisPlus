@@ -6,11 +6,24 @@ const btnGeneros = document.getElementById("btn-generos");
 const menuGeneros = document.getElementById("menu-generos");
 const btnInicio = document.getElementById("btn-inicio");
 const btnPeliculas = document.getElementById("btn-peliculas");
+const btnSolicitar = document.getElementById("btn-solicitar");
 const heroTitle = document.getElementById("hero-title");
 const heroDesc = document.getElementById("hero-desc");
 const heroBtn = document.getElementById("hero-btn");
 const menuToggle = document.getElementById("menu-toggle");
 const mainNav = document.getElementById("main-nav");
+const requestSection = document.getElementById("request-section");
+const requestForm = document.getElementById("request-form");
+const requestStatus = document.getElementById("request-status");
+const requestSubmit = document.getElementById("request-submit");
+const requestClose = document.getElementById("request-close");
+const requestContactType = document.getElementById("request-contact-type");
+const requestWhatsappFields = document.getElementById("request-whatsapp-fields");
+const requestEmailFields = document.getElementById("request-email-fields");
+const requestCountry = document.getElementById("request-country");
+const requestCountryCode = document.getElementById("request-country-code");
+const requestWhatsapp = document.getElementById("request-whatsapp");
+const requestEmail = document.getElementById("request-email");
 
 function renderEstadoPagina(mensaje, tipo = "cargando") {
   contenedor.innerHTML = `<div class="estado-pagina estado-${tipo}">${mensaje}</div>`;
@@ -61,6 +74,97 @@ function closeMobileMenu() {
   mainNav.classList.remove("nav-open");
   menuToggle.classList.remove("is-open");
   menuToggle.setAttribute("aria-expanded", "false");
+}
+
+function setRequestStatus(message, type = "") {
+  if (!requestStatus) {
+    return;
+  }
+
+  requestStatus.textContent = message;
+  requestStatus.className = `request-status ${type}`.trim();
+}
+
+function scrollToRequests() {
+  if (!requestSection) {
+    return;
+  }
+
+  requestSection.hidden = false;
+  requestSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closeRequestSection() {
+  if (!requestSection) {
+    return;
+  }
+
+  requestSection.hidden = true;
+}
+
+function updateRequestContactFields() {
+  if (!requestContactType) {
+    return;
+  }
+
+  const type = requestContactType.value;
+  const isWhatsapp = type === "whatsapp";
+  const isCorreo = type === "correo";
+
+  if (requestWhatsappFields) {
+    requestWhatsappFields.hidden = !isWhatsapp;
+  }
+
+  if (requestEmailFields) {
+    requestEmailFields.hidden = !isCorreo;
+  }
+
+  if (requestCountryCode && requestCountry) {
+    requestCountryCode.textContent = requestCountry.value || "+503";
+  }
+
+  if (requestWhatsapp) {
+    requestWhatsapp.required = isWhatsapp;
+    if (!isWhatsapp) {
+      requestWhatsapp.value = "";
+    }
+  }
+
+  if (requestEmail) {
+    requestEmail.required = isCorreo;
+    if (!isCorreo) {
+      requestEmail.value = "";
+    }
+  }
+}
+
+function buildRequestContact() {
+  const type = requestContactType?.value || "";
+
+  if (type === "whatsapp") {
+    const code = String(requestCountry?.value || "").trim();
+    const number = String(requestWhatsapp?.value || "")
+      .replace(/[^\d\s-]/g, "")
+      .trim();
+
+    if (!number) {
+      throw new Error("Escribe el numero de WhatsApp para poder avisarte.");
+    }
+
+    return `WhatsApp: ${code} ${number}`.trim();
+  }
+
+  if (type === "correo") {
+    const email = String(requestEmail?.value || "").trim();
+
+    if (!email) {
+      throw new Error("Escribe el correo para poder avisarte.");
+    }
+
+    return `Correo: ${email}`;
+  }
+
+  return "";
 }
 
 function toggleMobileMenu() {
@@ -398,6 +502,71 @@ function inicializarHero(data) {
   setInterval(() => cambiarHero(getRandomMovie()), 7000);
 }
 
+function inicializarSolicitudes() {
+  if (!requestForm) {
+    return;
+  }
+
+  if (requestContactType) {
+    requestContactType.value = "";
+  }
+
+  updateRequestContactFields();
+
+  requestContactType?.addEventListener("change", updateRequestContactFields);
+  requestCountry?.addEventListener("change", updateRequestContactFields);
+  requestClose?.addEventListener("click", closeRequestSection);
+
+  requestForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const formData = new FormData(requestForm);
+    const titulo = String(formData.get("titulo") || "").trim();
+    const detalle = String(formData.get("detalle") || "").trim();
+
+    if (!titulo) {
+      setRequestStatus("Escribe el titulo de la pelicula que quieres pedir.", "error");
+      return;
+    }
+
+    requestSubmit.disabled = true;
+    setRequestStatus("Enviando solicitud...", "loading");
+
+    try {
+      const client = window.supabasePublic;
+
+      if (!client) {
+        throw new Error("No se pudo conectar con la base de datos.");
+      }
+
+      const contacto = buildRequestContact();
+
+      const { error } = await client
+        .from("movie_requests")
+        .insert({
+          titulo,
+          contacto: contacto || null,
+          detalle: detalle || null
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      requestForm.reset();
+      updateRequestContactFields();
+      setRequestStatus("Solicitud enviada. Cuando la agreguen al catalogo, podran avisarte si dejaste contacto.", "ok");
+    } catch (error) {
+      setRequestStatus(
+        error.message || "No se pudo enviar la solicitud en este momento.",
+        "error"
+      );
+    } finally {
+      requestSubmit.disabled = false;
+    }
+  });
+}
+
 function inicializarNavegacion(data) {
   btnInicio.addEventListener("click", event => {
     event.preventDefault();
@@ -418,6 +587,14 @@ function inicializarNavegacion(data) {
     closeMobileMenu();
     window.location.href = "peliculas/";
   });
+
+  if (btnSolicitar) {
+    btnSolicitar.addEventListener("click", event => {
+      event.preventDefault();
+      closeMobileMenu();
+      scrollToRequests();
+    });
+  }
 
   btnGeneros.addEventListener("click", event => {
     event.preventDefault();
@@ -456,6 +633,7 @@ function inicializarNavegacion(data) {
 
 async function init() {
   renderEstadoPagina("Cargando catalogo...", "cargando");
+  inicializarSolicitudes();
 
   try {
     const data = await window.pelisData.fetchMoviesFromSupabase();

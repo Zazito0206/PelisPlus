@@ -20,6 +20,7 @@
                 <a href="#" id="btn-inicio">Inicio</a>
                 <a href="#" id="btn-peliculas">Peliculas</a>
                 <a href="milista/" id="btn-mi-lista">Mi lista</a>
+                <a href="#request-section" id="btn-solicitar">Pedir pelicula</a>
 
                 <div class="dropdown">
                     <a href="#" id="btn-generos">Generos ▾</a>
@@ -40,6 +41,83 @@
             <h1 id="hero-title">Cargando destacada...</h1>
             <p id="hero-desc">Estamos preparando el catalogo para ti.</p>
             <button id="hero-btn" disabled>Cargando...</button>
+        </div>
+    </section>
+
+    <section class="request-section" id="request-section" hidden>
+        <div class="request-shell">
+            <button type="button" id="request-close" class="request-close" aria-label="Cerrar solicitud">X</button>
+            <div class="request-copy">
+                <span class="request-eyebrow">Pide tu proxima pelicula</span>
+                <h2>Si no la ves en el catalogo, aqui la puedes pedir.</h2>
+                <p>Deja el titulo y, si quieres, tu correo o WhatsApp para avisarte cuando este disponible.</p>
+            </div>
+
+            <form id="request-form" class="request-form">
+                <label class="request-full">
+                    <span>Titulo de la pelicula</span>
+                    <input type="text" id="request-title" name="titulo" placeholder="Ej. Spider-Man 4" required>
+                </label>
+
+                <div class="request-contact-block request-full">
+                    <label>
+                        <span>Como quieres que te avisen</span>
+                        <select id="request-contact-type" name="contacto_tipo">
+                            <option value="">No dejar contacto</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="correo">Correo</option>
+                        </select>
+                    </label>
+
+                    <div id="request-whatsapp-fields" class="request-contact-fields" hidden>
+                        <label>
+                            <span>Pais</span>
+                            <select id="request-country" name="contacto_pais">
+                                <option value="+503">El Salvador (+503)</option>
+                                <option value="+502">Guatemala (+502)</option>
+                                <option value="+504">Honduras (+504)</option>
+                                <option value="+505">Nicaragua (+505)</option>
+                                <option value="+506">Costa Rica (+506)</option>
+                                <option value="+507">Panama (+507)</option>
+                                <option value="+52">Mexico (+52)</option>
+                                <option value="+1">Estados Unidos (+1)</option>
+                                <option value="+57">Colombia (+57)</option>
+                                <option value="+58">Venezuela (+58)</option>
+                                <option value="+51">Peru (+51)</option>
+                                <option value="+593">Ecuador (+593)</option>
+                                <option value="+54">Argentina (+54)</option>
+                                <option value="+56">Chile (+56)</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            <span>Numero de WhatsApp</span>
+                            <div class="request-phone-wrap">
+                                <span id="request-country-code" class="request-phone-prefix">+503</span>
+                                <input type="tel" id="request-whatsapp" name="contacto_whatsapp" inputmode="tel" placeholder="7000-0000">
+                            </div>
+                        </label>
+                    </div>
+
+                    <div id="request-email-fields" class="request-contact-fields" hidden>
+                        <label>
+                            <span>Correo</span>
+                            <input type="email" id="request-email" name="contacto_correo" placeholder="correo@ejemplo.com">
+                        </label>
+                    </div>
+                </div>
+
+                <label class="request-full">
+                    <span>Detalle opcional</span>
+                    <textarea id="request-detail" name="detalle" rows="4" placeholder="Ej. La animada de 2009, en latino, o cualquier detalle que ayude a identificarla"></textarea>
+                </label>
+
+                <div class="request-actions">
+                    <button type="submit" id="request-submit">Enviar solicitud</button>
+                </div>
+
+                <p id="request-status" class="request-status" aria-live="polite">Tu solicitud llegara al panel para revisarla.</p>
+            </form>
         </div>
     </section>
 

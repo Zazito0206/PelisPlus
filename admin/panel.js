@@ -1,12 +1,19 @@
 const form = document.getElementById("movie-form");
 const estado = document.getElementById("estado");
 const listaPeliculas = document.getElementById("lista-peliculas");
+const listaSolicitudes = document.getElementById("lista-solicitudes");
 const buscador = document.getElementById("buscador");
 const btnLimpiar = document.getElementById("btn-limpiar");
 const btnRecargar = document.getElementById("btn-recargar");
 const btnLogout = document.getElementById("btn-logout");
+const btnSolicitudes = document.getElementById("btn-solicitudes");
+const heroRequestCountBadge = document.getElementById("hero-request-count-badge");
 const formCard = document.querySelector(".form-card");
 const listCard = document.querySelector(".list-card");
+const listTitle = document.getElementById("list-title");
+const searchLabel = document.getElementById("search-label");
+const requestCountBadge = document.getElementById("request-count-badge");
+const panelTabs = Array.from(document.querySelectorAll(".panel-tab"));
 const btnBuscarTodo = document.getElementById("btn-buscar-todo");
 const btnClearPoster = document.getElementById("btn-clear-poster");
 const btnClearBanner = document.getElementById("btn-clear-banner");
@@ -33,6 +40,8 @@ const bannerFileInput = document.getElementById("bannerFile");
 const supabaseClient = window.supabaseAdmin;
 
 let catalogo = [];
+let solicitudes = [];
+let currentView = "catalogo";
 let sessionExpiresAt = 0;
 let sessionTick = null;
 let warningVisible = false;
@@ -74,6 +83,15 @@ function setEstado(message, type = "") {
   estado.className = `estado ${type}`.trim();
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 async function readJsonResponse(response, fallbackMessage) {
   const text = await response.text();
 
@@ -93,6 +111,18 @@ function normalizeMovies(rows) {
     banner: row.banner || "",
     categoria: Array.isArray(row.categoria) ? row.categoria : [],
     descripcion: row.descripcion || ""
+  }));
+}
+
+function normalizeRequests(rows) {
+  return (Array.isArray(rows) ? rows : []).map(row => ({
+    id: row.id || "",
+    titulo: row.titulo || "",
+    contacto: row.contacto || "",
+    detalle: row.detalle || "",
+    estado: row.estado || "pendiente",
+    created_at: row.created_at || null,
+    updated_at: row.updated_at || null
   }));
 }
 
@@ -182,6 +212,66 @@ function queueCatalogHeightSync() {
     heightSyncFrame = 0;
     syncCatalogHeight();
   });
+}
+
+function formatRequestDate(value) {
+  if (!value) {
+    return "Sin fecha";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Sin fecha";
+  }
+
+  return new Intl.DateTimeFormat("es-SV", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function getRequestStatusLabel(status) {
+  return status === "agregada" ? "Agregada" : "Pendiente";
+}
+
+function updateRequestBadge() {
+  const pendientes = solicitudes.filter(item => item.estado !== "agregada").length;
+  const total = String(pendientes);
+
+  if (requestCountBadge) {
+    requestCountBadge.textContent = total;
+  }
+
+  if (heroRequestCountBadge) {
+    heroRequestCountBadge.textContent = total;
+    heroRequestCountBadge.classList.toggle("is-empty", pendientes === 0);
+  }
+}
+
+function setActiveView(view) {
+  currentView = view === "solicitudes" ? "solicitudes" : "catalogo";
+  const isRequestsView = currentView === "solicitudes";
+
+  listaPeliculas.classList.toggle("oculto", isRequestsView);
+  listaSolicitudes.classList.toggle("oculto", !isRequestsView);
+  listTitle.textContent = isRequestsView ? "Solicitudes de peliculas" : "Catalogo actual";
+  searchLabel.textContent = isRequestsView ? "Buscar solicitud" : "Buscar";
+  buscador.placeholder = isRequestsView
+    ? "Titulo, contacto o estado"
+    : "Titulo o categoria";
+
+  panelTabs.forEach(button => {
+    button.classList.toggle("active", button.dataset.view === currentView);
+  });
+
+  if (isRequestsView) {
+    filterRequests();
+  } else {
+    filterCatalog();
+  }
+
+  queueCatalogHeightSync();
 }
 
 function fillForm(movie) {
@@ -530,11 +620,13 @@ function renderList(items) {
   items.forEach(movie => {
     const item = document.createElement("article");
     item.className = "movie-item";
-    const categorias = (movie.categoria || []).join(", ") || "Sin categorias";
+    const titulo = escapeHtml(movie.titulo);
+    const movieId = escapeHtml(movie.id);
+    const categorias = escapeHtml((movie.categoria || []).join(", ") || "Sin categorias");
 
     item.innerHTML = `
-      <h3>${movie.titulo}</h3>
-      <p class="movie-meta"><strong>ID:</strong> ${movie.id}</p>
+      <h3>${titulo}</h3>
+      <p class="movie-meta"><strong>ID:</strong> ${movieId}</p>
       <p class="movie-meta"><strong>Categorias:</strong> ${categorias}</p>
       <div class="movie-actions">
         <button type="button" data-action="edit">Editar</button>
@@ -577,6 +669,73 @@ function renderList(items) {
   });
 }
 
+function renderRequests(items) {
+  listaSolicitudes.innerHTML = "";
+
+  if (!items.length) {
+    listaSolicitudes.innerHTML = '<div class="movie-item"><p class="movie-meta">No encontramos solicitudes con ese filtro.</p></div>';
+    return;
+  }
+
+  items.forEach(request => {
+    const item = document.createElement("article");
+    item.className = "movie-item request-item";
+    const titulo = escapeHtml(request.titulo);
+    const contacto = escapeHtml(request.contacto || "No dejo contacto");
+    const detalle = escapeHtml(request.detalle || "Sin detalle adicional");
+    const statusClass = request.estado === "agregada" ? "is-done" : "is-pending";
+
+    item.innerHTML = `
+      <div class="request-item-head">
+        <h3>${titulo}</h3>
+        <span class="request-badge ${statusClass}">${escapeHtml(getRequestStatusLabel(request.estado))}</span>
+      </div>
+      <p class="movie-meta"><strong>Contacto:</strong> ${contacto}</p>
+      <p class="movie-meta"><strong>Detalle:</strong> ${detalle}</p>
+      <p class="movie-meta"><strong>Recibida:</strong> ${escapeHtml(formatRequestDate(request.created_at))}</p>
+      <div class="movie-actions">
+        <button type="button" data-action="mark-added">Marcar agregada</button>
+        <button type="button" data-action="mark-pending">Pendiente</button>
+        <button type="button" class="delete" data-action="delete">Eliminar</button>
+      </div>
+    `;
+
+    item.querySelector('[data-action="mark-added"]').addEventListener("click", async () => {
+      await updateRequestStatus(request, "agregada");
+    });
+
+    item.querySelector('[data-action="mark-pending"]').addEventListener("click", async () => {
+      await updateRequestStatus(request, "pendiente");
+    });
+
+    item.querySelector('[data-action="delete"]').addEventListener("click", async () => {
+      const confirmed = window.confirm(`Eliminar la solicitud de "${request.titulo}"?`);
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient
+          .from("movie_requests")
+          .delete()
+          .eq("id", request.id);
+
+        if (error) {
+          throw error;
+        }
+
+        await loadRequests();
+        setEstado(`Solicitud de "${request.titulo}" eliminada.`, "ok");
+      } catch (error) {
+        setEstado(error.message || "No se pudo eliminar la solicitud.", "error");
+      }
+    });
+
+    listaSolicitudes.appendChild(item);
+  });
+}
+
 function filterCatalog() {
   const query = buscador.value.trim().toLowerCase();
 
@@ -593,6 +752,47 @@ function filterCatalog() {
   });
 
   renderList(filtered);
+}
+
+function filterRequests() {
+  const query = buscador.value.trim().toLowerCase();
+
+  if (!query) {
+    renderRequests(solicitudes);
+    return;
+  }
+
+  const filtered = solicitudes.filter(request => {
+    const hayTitulo = request.titulo.toLowerCase().includes(query);
+    const hayContacto = request.contacto.toLowerCase().includes(query);
+    const hayDetalle = request.detalle.toLowerCase().includes(query);
+    const hayEstado = getRequestStatusLabel(request.estado).toLowerCase().includes(query);
+    return hayTitulo || hayContacto || hayDetalle || hayEstado;
+  });
+
+  renderRequests(filtered);
+}
+
+async function updateRequestStatus(request, estado) {
+  if (!request?.id) {
+    return;
+  }
+
+  try {
+    const { error } = await supabaseClient
+      .from("movie_requests")
+      .update({ estado })
+      .eq("id", request.id);
+
+    if (error) {
+      throw error;
+    }
+
+    await loadRequests();
+    setEstado(`Solicitud "${request.titulo}" marcada como ${getRequestStatusLabel(estado).toLowerCase()}.`, "ok");
+  } catch (error) {
+    setEstado(error.message || "No se pudo actualizar la solicitud.", "error");
+  }
 }
 
 async function loadCatalog() {
@@ -625,8 +825,35 @@ async function loadCatalog() {
   }
 }
 
-function startPanel() {
-  loadCatalog();
+async function loadRequests() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("movie_requests")
+      .select("id, titulo, contacto, detalle, estado, created_at, updated_at")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    solicitudes = normalizeRequests(data);
+    updateRequestBadge();
+    filterRequests();
+    queueCatalogHeightSync();
+  } catch (error) {
+    if (String(error.message || "").includes("Debes iniciar sesion")) {
+      window.location.href = "/admin/login/";
+      return;
+    }
+
+    setEstado(error.message || "No se pudieron cargar las solicitudes.", "error");
+  }
+}
+
+async function startPanel() {
+  await loadCatalog();
+  await loadRequests();
+  setActiveView(currentView);
 }
 
 form.elements.titulo.addEventListener("input", () => {
@@ -732,8 +959,16 @@ form.addEventListener("submit", async event => {
 });
 
 btnLimpiar.addEventListener("click", clearForm);
-btnRecargar.addEventListener("click", loadCatalog);
+btnRecargar.addEventListener("click", async () => {
+  await loadCatalog();
+  await loadRequests();
+  setEstado("Catalogo y solicitudes recargados.", "ok");
+});
 btnLogout.addEventListener("click", logout);
+btnSolicitudes.addEventListener("click", () => {
+  setActiveView("solicitudes");
+  listCard.scrollIntoView({ behavior: "smooth", block: "start" });
+});
 btnBuscarTodo.addEventListener("click", buscarTodoCuevana);
 btnClearPoster.addEventListener("click", clearPosterAuto);
 btnClearBanner.addEventListener("click", clearBannerAuto);
@@ -742,7 +977,20 @@ btnUsarVimeus.addEventListener("click", applyVimeusUrl);
 btnExtend5.addEventListener("click", () => extendSession(5));
 btnExtend10.addEventListener("click", () => extendSession(10));
 btnSessionClose.addEventListener("click", logout);
-buscador.addEventListener("input", filterCatalog);
+buscador.addEventListener("input", () => {
+  if (currentView === "solicitudes") {
+    filterRequests();
+    return;
+  }
+
+  filterCatalog();
+});
+
+panelTabs.forEach(button => {
+  button.addEventListener("click", () => {
+    setActiveView(button.dataset.view);
+  });
+});
 
 vimeusTmdb.addEventListener("input", () => {
   if (vimeusGeneratedUrl) {

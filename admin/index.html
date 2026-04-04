@@ -20,6 +20,10 @@
       </div>
       <div class="hero-actions">
         <a href="/" target="_blank" rel="noreferrer">Inicio</a>
+        <button type="button" id="btn-solicitudes">
+          Solicitudes
+          <span id="hero-request-count-badge" class="hero-request-count-badge">0</span>
+        </button>
         <button type="button" id="btn-recargar">Recargar catalogo</button>
         <button type="button" id="btn-logout">Cerrar sesion</button>
       </div>
@@ -133,15 +137,23 @@
 
       <section class="card list-card">
         <div class="card-head">
-          <h2>Catalogo actual</h2>
+          <h2 id="list-title">Catalogo actual</h2>
+          <div class="panel-tabs">
+            <button type="button" class="panel-tab active" data-view="catalogo">Catalogo</button>
+            <button type="button" class="panel-tab" data-view="solicitudes">
+              Solicitudes
+              <span id="request-count-badge" class="request-count-badge">0</span>
+            </button>
+          </div>
         </div>
 
         <label class="search-box">
-          <span>Buscar</span>
+          <span id="search-label">Buscar</span>
           <input type="text" id="buscador" placeholder="Titulo o categoria">
         </label>
 
         <div id="lista-peliculas" class="lista-peliculas"></div>
+        <div id="lista-solicitudes" class="lista-peliculas oculto"></div>
       </section>
     </section>
   </main>
