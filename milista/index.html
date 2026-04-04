@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelis+ | Mi lista</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="milista.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-left">
+            <img src="../images/WEB/logo.png" class="logo" id="btn-logo" alt="Pelis+">
+            <nav>
+                <a href="../index.html" id="btn-inicio">Inicio</a>
+                <a href="../peliculas/" id="btn-peliculas">Películas</a>
+                <a href="#" id="btn-mi-lista" class="nav-activo">Mi lista</a>
+            </nav>
+        </div>
+        <div class="search-box">
+            <input type="text" placeholder="Buscar en mi lista..." class="search">
+            <div class="search-results"></div>
+        </div>
+    </header>
+
+    <main class="contenido-lista">
+        <section class="encabezado-lista">
+            <a href="../index.html" class="volver-inicio">← Volver al inicio</a>
+            <p class="eyebrow">Guardadas</p>
+            <h1>Mi lista</h1>
+            <p class="descripcion-lista">Aquí verás las películas que marcaste para ver después.</p>
+        </section>
+
+        <div id="contenedor"></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+    <script src="../supabase-client.js"></script>
+    <script src="../site-data.js"></script>
+    <script src="milista.js"></script>
+</body>
+</html>

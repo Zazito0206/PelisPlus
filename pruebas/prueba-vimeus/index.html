@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador Vimeus</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Prueba aislada</p>
+      <h1>Generar enlace de Vimeus</h1>
+      <p class="copy">Escribe el titulo, abre la busqueda de Vimeus para sacar el TMDb ID, y luego genera el enlace final con tu configuracion por defecto.</p>
+    </section>
+
+    <section class="panel">
+      <form id="form" class="form">
+        <div class="field-grid">
+          <label>
+            <span>Titulo</span>
+            <input type="text" id="title" placeholder="Ejemplo: Zootopia 2" required>
+          </label>
+
+          <label>
+            <span>TMDb ID</span>
+            <input type="text" id="tmdb" placeholder="Ejemplo: 1084242" required>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" id="btn-open-search" class="secondary">Abrir Vimeus</button>
+          <button type="submit">Generar enlace</button>
+          <button type="button" id="btn-clear" class="secondary">Limpiar</button>
+        </div>
+      </form>
+
+      <p id="status" class="status">Listo para generar.</p>
+
+      <article id="result" class="result hidden">
+        <div class="result-head">
+          <h2>Resultado</h2>
+        </div>
+        <div class="result-info">
+          <p><strong>Titulo:</strong> <span id="result-query"></span></p>
+          <p><strong>TMDb:</strong> <span id="result-tmdb"></span></p>
+          <p><strong>Branding:</strong> <span id="result-brand"></span></p>
+          <p><strong>Theme / Font / Overlay:</strong> <span id="result-config"></span></p>
+          <p><strong>Enlace:</strong> <a id="result-link" href="#" target="_blank" rel="noreferrer">Abrir enlace</a></p>
+        </div>
+
+        <div class="result-list">
+          <h3>URL lista para copiar</h3>
+          <textarea id="result-url" rows="5" readonly></textarea>
+        </div>
+      </article>
+
+      <article class="note">
+        <h2>Como usarlo</h2>
+        <p>La prueba usa estos valores por defecto: <code>view_key=GVW7Je4obF9FT749y4y5MdUAQOVh-j4BhH05eZNGCdE</code>, <code>title=PELIS</code>, <code>theme=blue</code>, <code>font=v3</code>, <code>overlay=v2</code>.</p>
+        <p>Flujo recomendado: escribe el titulo, pulsa <code>Abrir Vimeus</code>, busca esa peli en tu sesion y copia el TMDb ID. Luego regresas aqui y generas el enlace.</p>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

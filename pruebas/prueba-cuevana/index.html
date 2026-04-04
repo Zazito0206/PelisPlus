@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba Cuevana</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Prueba aislada</p>
+      <h1>Extraer portada y banner desde Cuevana</h1>
+      <p class="copy">Escribe un titulo y prueba ambos recursos desde la misma pagina antes de llevarlos al panel principal.</p>
+    </section>
+
+    <section class="panel">
+      <form id="form" class="form">
+        <label>
+          <span>Titulo</span>
+          <input type="text" id="title" placeholder="Ejemplo: Coraline" required>
+        </label>
+        <div class="form-actions">
+          <button type="button" id="btn-search">Buscar todo</button>
+        </div>
+      </form>
+
+      <p id="status" class="status">Listo para probar.</p>
+
+      <section class="results-grid">
+        <article id="poster-result" class="result hidden">
+          <div class="result-head">
+            <h2>Portada</h2>
+          </div>
+          <div class="preview-wrap">
+            <img id="poster-image" alt="Portada extraida">
+          </div>
+          <div class="result-info">
+            <p><strong>Titulo:</strong> <span id="poster-title"></span></p>
+            <p><strong>Slug:</strong> <span id="poster-slug"></span></p>
+            <p><strong>Pagina:</strong> <a id="poster-page" target="_blank" rel="noreferrer">Abrir</a></p>
+            <p><strong>Imagen:</strong> <a id="poster-link" target="_blank" rel="noreferrer">Ver imagen</a></p>
+          </div>
+        </article>
+
+        <article id="banner-result" class="result hidden">
+          <div class="result-head">
+            <h2>Banner</h2>
+          </div>
+          <div class="preview-wrap preview-wrap-banner">
+            <img id="banner-image" alt="Banner extraido">
+          </div>
+          <div class="result-info">
+            <p><strong>Titulo:</strong> <span id="banner-title"></span></p>
+            <p><strong>Slug:</strong> <span id="banner-slug"></span></p>
+            <p><strong>Pagina:</strong> <a id="banner-page" target="_blank" rel="noreferrer">Abrir</a></p>
+            <p><strong>Imagen:</strong> <a id="banner-link" target="_blank" rel="noreferrer">Ver imagen</a></p>
+          </div>
+        </article>
+      </section>
+
+      <article id="details-result" class="details-panel hidden">
+        <div class="result-head">
+          <h2>Informacion</h2>
+        </div>
+        <div class="details-grid">
+          <p><strong>Titulo:</strong> <span id="details-title"></span></p>
+          <p><strong>Slug:</strong> <span id="details-slug"></span></p>
+          <p><strong>Pagina:</strong> <a id="details-page" target="_blank" rel="noreferrer">Abrir</a></p>
+          <p><strong>Generos:</strong> <span id="details-genres"></span></p>
+        </div>
+        <div class="details-description">
+          <h3>Descripcion</h3>
+          <p id="details-description"></p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

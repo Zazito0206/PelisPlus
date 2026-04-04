@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Panel Pelis+</title>
+  <link rel="stylesheet" href="/admin/login.css">
+</head>
+<body>
+  <main class="login-page">
+    <section class="login-card">
+      <p class="eyebrow">Acceso privado</p>
+      <h1>Entrar al panel</h1>
+      <p class="copy">Inicia sesión para editar el catálogo y subir recursos.</p>
+
+      <form id="login-form" class="login-form">
+        <label>
+          <span>Correo</span>
+          <input type="email" id="email" autocomplete="email" required>
+        </label>
+
+        <label>
+          <span>Contraseña</span>
+          <input type="password" id="password" autocomplete="current-password" required>
+        </label>
+
+        <button type="submit">Entrar</button>
+      </form>
+
+      <p id="status" class="status">Listo para iniciar sesión.</p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/admin/supabase-config.js"></script>
+  <script src="/admin/supabase-client.js"></script>
+  <script src="/admin/login.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelis+ | Género</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="generos.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-left">
+            <img src="../images/WEB/logo.png" class="logo" id="btn-logo" alt="Pelis+">
+            <nav>
+                <a href="../index.html" id="btn-inicio">Inicio</a>
+                <a href="../peliculas/" id="btn-peliculas">Películas</a>
+                <a href="../milista/" id="btn-mi-lista">Mi lista</a>
+                <div class="dropdown">
+                    <a href="#" id="btn-generos" class="nav-activo">Géneros ▾</a>
+                    <div class="dropdown-menu" id="menu-generos"></div>
+                </div>
+            </nav>
+        </div>
+        <div class="search-box">
+            <input type="text" placeholder="Buscar..." class="search">
+            <div class="search-results"></div>
+        </div>
+    </header>
+
+    <main class="contenido-generos">
+        <section class="encabezado-generos">
+            <a href="../index.html" class="volver-inicio">← Volver al inicio</a>
+            <p class="eyebrow">Categoría</p>
+            <h1 id="titulo-genero">Género</h1>
+            <p class="descripcion-generos" id="descripcion-genero">Películas filtradas por categoría en una vista limpia y ordenada.</p>
+        </section>
+
+        <div id="contenedor"></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+    <script src="../supabase-client.js"></script>
+    <script src="../site-data.js"></script>
+    <script src="generos.js"></script>
+</body>
+</html>

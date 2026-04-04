@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://vyaxptlskssstvcibfbi.supabase.co; media-src 'self' https: blob:; frame-src https://vimeus.com https://www.vimeus.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'">
+<title>Ver Película | Pelis+</title>
+<link rel="stylesheet" href="pelicula.css">
+</head>
+
+<body>
+
+<section class="hero">
+  <div class="bg" id="bg"></div>
+
+  <a href="../index.html" class="volver-inicio">← Volver al inicio</a>
+
+  <div class="hero-content">
+    <img id="poster" class="poster" alt="Poster de la película">
+
+    <div class="info">
+      <p class="eyebrow" id="frase">Preparando tu película...</p>
+      <h1 id="titulo">Cargando película...</h1>
+      <p id="desc">Estamos reuniendo los detalles y preparando la reproducción.</p>
+
+      <div class="meta" id="meta">
+        <span>HD</span>
+      </div>
+
+      <div class="tags" id="etiquetas"></div>
+
+      <div class="acciones">
+        <a href="#player" class="btn-principal">Ver ahora</a>
+        <button type="button" class="btn-secundario" id="btn-lista">Mi lista</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="player-section" id="player">
+  <div class="section-head">
+    <p class="section-kicker">Reproducción</p>
+    <h2>Listo para ver</h2>
+    <p>Disfruta la película sin salir de la página.</p>
+  </div>
+
+  <div class="estado-detalle estado-cargando" id="detalle-estado">Cargando película...</div>
+
+  <div class="player-container oculto" id="player-container">
+    <video id="video" controls controlsList="nodownload noplaybackrate noremoteplayback"></video>
+    <iframe
+      id="player-frame"
+      class="oculto"
+      title="Reproductor externo"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+      allow="autoplay; fullscreen; picture-in-picture"
+      allowfullscreen
+      referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+</section>
+
+<section class="relacionadas-section">
+  <div class="section-head">
+    <p class="section-kicker">Sigue viendo</p>
+    <h2>Te puede gustar también</h2>
+    <p>Más títulos con una vibra parecida para seguir la maratón.</p>
+  </div>
+
+  <div class="relacionadas-grid" id="relacionadas"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-config.js"></script>
+<script src="../supabase-client.js"></script>
+<script src="../site-data.js"></script>
+<script src="pelicula.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://vyaxptlskssstvcibfbi.supabase.co; media-src 'self' https: blob:; frame-src https://vimeus.com https://www.vimeus.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'">
+    <title>Pelis+</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-left">
+            <img src="images/WEB/logo.png" class="logo" id="btn-logo" alt="Pelis+">
+            <button class="menu-toggle" id="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="main-nav">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <nav id="main-nav">
+                <a href="#" id="btn-inicio">Inicio</a>
+                <a href="#" id="btn-peliculas">Peliculas</a>
+                <a href="milista/" id="btn-mi-lista">Mi lista</a>
+
+                <div class="dropdown">
+                    <a href="#" id="btn-generos">Generos ▾</a>
+                    <div class="dropdown-menu" id="menu-generos"></div>
+                </div>
+            </nav>
+        </div>
+        <div class="search-box">
+            <input type="text" placeholder="Buscar..." class="search">
+            <div class="search-results"></div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div id="bg1" class="hero-bg"></div>
+        <div id="bg2" class="hero-bg" style="opacity:0;"></div>
+        <div class="hero-overlay">
+            <h1 id="hero-title">Cargando destacada...</h1>
+            <p id="hero-desc">Estamos preparando el catalogo para ti.</p>
+            <button id="hero-btn" disabled>Cargando...</button>
+        </div>
+    </section>
+
+    <div id="contenedor">
+        <div class="estado-pagina estado-cargando">Cargando catalogo...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="supabase-client.js"></script>
+    <script src="site-data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

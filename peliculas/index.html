@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pelis+ | Películas</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="peliculas.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="header-left">
+            <img src="../images/WEB/logo.png" class="logo" id="btn-logo" alt="Pelis+">
+            <nav>
+                <a href="../index.html" id="btn-inicio">Inicio</a>
+                <a href="#" id="btn-peliculas" class="nav-activo">Películas</a>
+                <a href="../milista/" id="btn-mi-lista">Mi lista</a>
+            </nav>
+        </div>
+        <div class="search-box">
+            <input type="text" placeholder="Buscar..." class="search">
+            <div class="search-results"></div>
+        </div>
+    </header>
+
+    <main class="contenido-peliculas">
+        <section class="encabezado-peliculas">
+            <a href="../index.html" class="volver-inicio">← Volver al inicio</a>
+            <p class="eyebrow">Catálogo</p>
+            <h1>Todas las películas</h1>
+            <p class="descripcion-peliculas">Explora todo el contenido en una sola vista.</p>
+        </section>
+
+        <div id="contenedor"></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-config.js"></script>
+    <script src="../supabase-client.js"></script>
+    <script src="../site-data.js"></script>
+    <script src="peliculas.js"></script>
+</body>
+</html>

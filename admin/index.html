@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Pelis+</title>
+  <link rel="stylesheet" href="panel.css">
+</head>
+<body>
+  <main class="panel">
+    <div class="session-pill" id="session-pill" aria-live="polite">
+      <span class="session-pill-label">Sesion</span>
+      <strong id="session-pill-time">05:00</strong>
+    </div>
+
+    <section class="panel-hero">
+      <div>
+        <p class="eyebrow">Panel local</p>
+        <h1>Agregar y editar peliculas</h1>
+      </div>
+      <div class="hero-actions">
+        <a href="/" target="_blank" rel="noreferrer">Inicio</a>
+        <button type="button" id="btn-recargar">Recargar catalogo</button>
+        <button type="button" id="btn-logout">Cerrar sesion</button>
+      </div>
+    </section>
+
+    <section class="layout">
+      <section class="card form-card">
+        <div class="card-head">
+          <h2>Formulario</h2>
+          <p>Si dejas el mismo titulo o ID, se actualiza la pelicula existente.</p>
+        </div>
+
+        <form id="movie-form" class="movie-form">
+          <div class="field-grid">
+            <label>
+              <span>Titulo</span>
+              <input type="text" name="titulo" id="titulo" required>
+            </label>
+
+            <label>
+              <span>ID</span>
+              <input type="text" name="id" id="id" placeholder="Se genera automaticamente">
+            </label>
+
+            <section class="cuevana-helper">
+              <div class="cuevana-inline">
+                <button type="button" id="btn-buscar-todo" class="primary helper-inline">Buscar todo</button>
+                <label class="cuevana-source">
+                  <input type="text" id="cuevana-source" readonly placeholder="Aqui aparecera el enlace usado">
+                </label>
+              </div>
+            </section>
+
+            <section class="vimeus-helper">
+              <div class="vimeus-inline">
+                <label class="vimeus-code">
+                  <input type="text" id="vimeus-tmdb" inputmode="numeric" placeholder="1084242">
+                </label>
+                <div class="vimeus-actions">
+                  <button type="button" id="btn-generar-vimeus" class="secondary helper-inline">Generar enlace</button>
+                  <button type="button" id="btn-usar-vimeus" class="primary helper-inline" disabled>Usar enlace</button>
+                </div>
+                <label class="vimeus-preview">
+                  <input type="text" id="vimeus-preview" readonly placeholder="Aqui aparecera el enlace generado para revisarlo">
+                </label>
+              </div>
+            </section>
+
+            <section class="asset-card">
+              <div class="asset-head">
+                <h3>Portada</h3>
+                <button type="button" id="btn-clear-poster" class="clear-asset-btn" aria-label="Quitar portada automatica">X</button>
+              </div>
+              <label class="asset-file">
+                <span>Archivo</span>
+                <input type="file" name="imagenFile" id="imagenFile" accept=".avif,.jpg,.jpeg,.png,.webp">
+              </label>
+              <label>
+                <span>Ruta portada</span>
+                <input type="text" name="imagen" id="imagen" readonly placeholder="Se genera automaticamente">
+              </label>
+              <p id="poster-status" class="poster-status">Escribe el titulo y usa el boton para traer la portada.</p>
+              <div class="poster-preview oculto" id="poster-preview-wrap">
+                <img id="poster-preview" alt="Vista previa de portada">
+              </div>
+            </section>
+
+            <section class="asset-card">
+              <div class="asset-head">
+                <h3>Banner</h3>
+                <button type="button" id="btn-clear-banner" class="clear-asset-btn" aria-label="Quitar banner automatico">X</button>
+              </div>
+              <label class="asset-file">
+                <span>Archivo</span>
+                <input type="file" name="bannerFile" id="bannerFile" accept=".avif,.jpg,.jpeg,.png,.webp">
+              </label>
+              <label>
+                <span>Ruta banner</span>
+                <input type="text" name="banner" id="banner" readonly placeholder="Se genera automaticamente">
+              </label>
+              <p id="banner-status" class="poster-status">Usa el mismo titulo para intentar traer un banner panoramico.</p>
+              <div class="poster-preview poster-preview-banner oculto" id="banner-preview-wrap">
+                <img id="banner-preview" alt="Vista previa de banner">
+              </div>
+            </section>
+
+            <label class="full">
+              <span>Enlace o archivo</span>
+              <input type="text" name="archivo" id="archivo" required placeholder="https://... o pega aqui el enlace del reproductor">
+            </label>
+
+            <label class="full">
+              <span>Categorias</span>
+              <input type="text" name="categoria" id="categoria" placeholder="Animacion, Fantasia">
+            </label>
+
+            <label class="full">
+              <span>Descripcion</span>
+              <textarea name="descripcion" id="descripcion" rows="6" required></textarea>
+            </label>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="primary">Guardar pelicula</button>
+            <button type="button" id="btn-limpiar" class="secondary">Limpiar</button>
+          </div>
+        </form>
+
+        <p id="estado" class="estado">Listo para trabajar.</p>
+      </section>
+
+      <section class="card list-card">
+        <div class="card-head">
+          <h2>Catalogo actual</h2>
+        </div>
+
+        <label class="search-box">
+          <span>Buscar</span>
+          <input type="text" id="buscador" placeholder="Titulo o categoria">
+        </label>
+
+        <div id="lista-peliculas" class="lista-peliculas"></div>
+      </section>
+    </section>
+  </main>
+
+  <div id="session-modal" class="session-modal oculto" aria-live="polite">
+    <div class="session-card">
+      <p class="eyebrow">Sesion por expirar</p>
+      <h2>Tu sesion se cierra en <span id="session-countdown">10</span>s</h2>
+      <p class="session-copy">Si sigues trabajando, puedes extenderla sin perder lo que llevas en el formulario.</p>
+      <div class="session-actions">
+        <button type="button" id="btn-extend-5" class="primary">Extender 5 minutos</button>
+        <button type="button" id="btn-extend-10" class="secondary">Extender 10 minutos</button>
+        <button type="button" id="btn-session-close" class="ghost">Cerrar sesion</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/admin/supabase-config.js"></script>
+  <script src="/admin/supabase-client.js"></script>
+  <script src="/admin/panel-auth.js"></script>
+  <script src="panel.js"></script>
+</body>
+</html>
