@@ -33,6 +33,10 @@ const deleteRequestModal = document.getElementById("delete-request-modal");
 const deleteRequestTitle = document.getElementById("delete-request-title");
 const btnDeleteRequestConfirm = document.getElementById("btn-delete-request-confirm");
 const btnDeleteRequestCancel = document.getElementById("btn-delete-request-cancel");
+const deleteMovieModal = document.getElementById("delete-movie-modal");
+const deleteMovieTitle = document.getElementById("delete-movie-title");
+const btnDeleteMovieConfirm = document.getElementById("btn-delete-movie-confirm");
+const btnDeleteMovieCancel = document.getElementById("btn-delete-movie-cancel");
 const sessionCountdown = document.getElementById("session-countdown");
 const sessionPill = document.getElementById("session-pill");
 const sessionPillTime = document.getElementById("session-pill-time");
@@ -50,6 +54,7 @@ let sessionExpiresAt = 0;
 let sessionTick = null;
 let warningVisible = false;
 let pendingRequestDelete = null;
+let pendingMovieDelete = null;
 let imagenSourceUrl = "";
 let bannerSourceUrl = "";
 let cuevanaPageUrl = "";
@@ -477,6 +482,23 @@ function closeDeleteRequestModal() {
   deleteRequestModal?.classList.add("oculto");
 }
 
+function openDeleteMovieModal(movie) {
+  pendingMovieDelete = movie || null;
+
+  if (deleteMovieTitle) {
+    deleteMovieTitle.textContent = movie?.titulo
+      ? `Eliminar "${movie.titulo}" del catalogo?`
+      : "Quieres eliminar esta pelicula?";
+  }
+
+  deleteMovieModal?.classList.remove("oculto");
+}
+
+function closeDeleteMovieModal() {
+  pendingMovieDelete = null;
+  deleteMovieModal?.classList.add("oculto");
+}
+
 function showSessionWarning(seconds) {
   warningVisible = true;
   sessionCountdown.textContent = String(seconds);
@@ -808,30 +830,8 @@ function renderList(items) {
       setEstado(`Editando "${movie.titulo}".`);
     });
 
-    item.querySelector('[data-action="delete"]').addEventListener("click", async () => {
-      const confirmed = window.confirm(`Eliminar "${movie.titulo}" del catalogo?`);
-
-      if (!confirmed) {
-        return;
-      }
-
-      try {
-        await removeStoredAssets(movie);
-        const { error } = await supabaseClient
-          .from("movies")
-          .delete()
-          .eq("id", movie.id);
-
-        if (error) {
-          throw error;
-        }
-
-        await loadCatalog();
-        clearForm();
-        setEstado(`"${movie.titulo}" fue eliminada.`, "ok");
-      } catch (error) {
-        setEstado(error.message || "No se pudo eliminar la pelicula.", "error");
-      }
+    item.querySelector('[data-action="delete"]').addEventListener("click", () => {
+      openDeleteMovieModal(movie);
     });
 
     listaPeliculas.appendChild(item);
@@ -1150,6 +1150,44 @@ btnDeleteRequestConfirm?.addEventListener("click", async () => {
     setEstado(`Solicitud de "${request.titulo}" eliminada.`, "ok");
   } catch (error) {
     setEstado(error.message || "No se pudo eliminar la solicitud.", "error");
+  }
+});
+btnDeleteMovieCancel?.addEventListener("click", closeDeleteMovieModal);
+btnDeleteMovieConfirm?.addEventListener("click", async () => {
+  if (!pendingMovieDelete?.id) {
+    closeDeleteMovieModal();
+    return;
+  }
+
+  const movie = pendingMovieDelete;
+  closeDeleteMovieModal();
+
+  try {
+    await removeStoredAssets(movie);
+    const { error } = await supabaseClient
+      .from("movies")
+      .delete()
+      .eq("id", movie.id);
+
+    if (error) {
+      throw error;
+    }
+
+    await loadCatalog();
+    clearForm();
+    setEstado(`"${movie.titulo}" fue eliminada.`, "ok");
+  } catch (error) {
+    setEstado(error.message || "No se pudo eliminar la pelicula.", "error");
+  }
+});
+deleteRequestModal?.addEventListener("click", event => {
+  if (event.target === deleteRequestModal) {
+    closeDeleteRequestModal();
+  }
+});
+deleteMovieModal?.addEventListener("click", event => {
+  if (event.target === deleteMovieModal) {
+    closeDeleteMovieModal();
   }
 });
 buscador.addEventListener("input", () => {
