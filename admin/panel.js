@@ -1405,8 +1405,7 @@ async function handleAssistantSubmit(event) {
       "assistant",
       text,
       {
-        allowActions: currentAssistantAction === "text",
-        forceScroll: true
+        allowActions: currentAssistantAction === "text"
       }
     );
     setAssistantStatus("Respuesta lista.", "ok");
@@ -1748,7 +1747,8 @@ document.addEventListener("click", event => {
     assistantPanel &&
     !assistantPanel.classList.contains("oculto") &&
     !event.target.closest("#assistant-panel") &&
-    !event.target.closest("#assistant-launcher")
+    !event.target.closest("#assistant-launcher") &&
+    !event.target.closest("#assistant-read-modal")
   ) {
     closeAssistantPanel();
   }
