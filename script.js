@@ -555,7 +555,7 @@ function obtenerSeccionesInicio(lista) {
     },
     {
       titulo: "Mundos raros",
-      tipo: "spotlight",
+      tipo: "default",
       filtro: peli =>
         (peli.categoria || []).includes("Fantasia") ||
         (peli.categoria || []).includes("Fantasía") ||
