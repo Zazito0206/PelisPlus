@@ -54,6 +54,9 @@ const TOAST_MESSAGES = [
     action: "search"
   }
 ];
+const TOAST_INITIAL_DELAY_MS = 10 * 1000;
+const TOAST_INTERVAL_MS = 5 * 60 * 1000;
+const TOAST_CYCLE_PAUSE_MS = 30 * 60 * 1000;
 
 let toastTimeoutId = 0;
 let toastMessageIndex = 0;
@@ -357,7 +360,7 @@ function showToast(notification) {
   }, 9000);
 }
 
-function queueNextToast(initialDelay = 9000) {
+function queueNextToast(initialDelay = TOAST_INTERVAL_MS) {
   if (!toastStack) {
     return;
   }
@@ -369,8 +372,15 @@ function queueNextToast(initialDelay = 9000) {
   toastTimeoutId = window.setTimeout(() => {
     const nextNotification = addNotification(TOAST_MESSAGES[toastMessageIndex]);
     showToast(nextNotification);
-    toastMessageIndex = (toastMessageIndex + 1) % TOAST_MESSAGES.length;
-    queueNextToast(32000);
+    toastMessageIndex += 1;
+
+    if (toastMessageIndex >= TOAST_MESSAGES.length) {
+      toastMessageIndex = 0;
+      queueNextToast(TOAST_CYCLE_PAUSE_MS);
+      return;
+    }
+
+    queueNextToast(TOAST_INTERVAL_MS);
   }, initialDelay);
 }
 
@@ -888,7 +898,7 @@ async function init() {
     inicializarBusqueda(data);
     inicializarNavegacion(data);
     crearUI(data);
-    queueNextToast();
+    queueNextToast(TOAST_INITIAL_DELAY_MS);
   } catch (error) {
     heroTitle.innerText = "No pudimos cargar Pelis+";
     heroDesc.innerText = error.message || "Intenta recargar la pagina.";
