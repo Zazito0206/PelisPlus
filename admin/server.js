@@ -15,6 +15,7 @@ const ADMIN_PASSWORD = "Zazo020623";
 const SESSION_COOKIE = "pelisplus_admin_session";
 const DEFAULT_SESSION_MS = 5 * 60 * 1000;
 const CUEVANA_BASE_URL = "https://wv3.cuevana3.eu";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 const sessions = new Map();
 
 const MIME_TYPES = {
@@ -232,6 +233,52 @@ function fetchRemote(url) {
       });
     }).on("error", reject);
   });
+}
+
+function getAssistantSystemPrompt(action) {
+  const actionLabel = {
+    chat: "responder preguntas simples",
+    text: "acortar, resumir o mejorar texto"
+  }[action] || "resolver tareas basicas de texto";
+
+  return [
+    "Eres un asistente interno de Pelis+ para el panel admin.",
+    "Ayudas con tareas basicas de texto en español, de forma breve y util.",
+    `En esta respuesta, enfocate principalmente en: ${actionLabel}.`,
+    "Si el usuario comparte una descripcion larga, devuelvela lista para usar.",
+    "No uses markdown complejo ni relleno innecesario."
+  ].join(" ");
+}
+
+function buildAssistantUserPrompt(action, prompt, sourceText) {
+  const parts = [`Accion solicitada: ${action || "chat"}.`];
+
+  if (prompt) {
+    parts.push(`Instruccion del usuario:\n${prompt}`);
+  }
+
+  if (sourceText) {
+    parts.push(`Texto base:\n${sourceText}`);
+  }
+
+  return parts.join("\n\n");
+}
+
+function extractAssistantText(payload) {
+  const content = payload?.choices?.[0]?.message?.content;
+
+  if (typeof content === "string") {
+    return content.trim();
+  }
+
+  if (Array.isArray(content)) {
+    return content
+      .map(item => (typeof item?.text === "string" ? item.text : ""))
+      .join("\n")
+      .trim();
+  }
+
+  return "";
 }
 
 function decodeHtml(value) {
@@ -771,6 +818,73 @@ async function handleApi(req, res, pathname) {
       ok: false,
       error: "Debes iniciar sesión."
     });
+    return true;
+  }
+
+  if (pathname === "/api/admin-assistant" && req.method === "POST") {
+    try {
+      const apiKey = String(process.env.OPENROUTER_API_KEY || process.env.PELIS_API_KEY || "").trim();
+
+      if (!apiKey) {
+        throw new Error("Falta configurar la API key del asistente.");
+      }
+
+      const body = await readBody(req);
+      const input = JSON.parse(body || "{}");
+      const action = String(input.action || "chat").trim();
+      const prompt = String(input.prompt || "").trim();
+      const sourceText = String(input.sourceText || "").trim();
+
+      if (!prompt && !sourceText) {
+        throw new Error("Debes enviar una instruccion o un texto base.");
+      }
+
+      const response = await fetch(OPENROUTER_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "http://localhost:3000/admin/",
+          "X-Title": "Pelis+ Admin Assistant Local"
+        },
+        body: JSON.stringify({
+          model: "openrouter/free",
+          messages: [
+            {
+              role: "system",
+              content: getAssistantSystemPrompt(action)
+            },
+            {
+              role: "user",
+              content: buildAssistantUserPrompt(action, prompt, sourceText)
+            }
+          ]
+        })
+      });
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload?.error?.message || payload?.error || "No se pudo usar OpenRouter.");
+      }
+
+      const text = extractAssistantText(payload);
+
+      if (!text) {
+        throw new Error("La IA no devolvio una respuesta util.");
+      }
+
+      sendJson(res, 200, {
+        ok: true,
+        text
+      });
+    } catch (error) {
+      sendJson(res, 400, {
+        ok: false,
+        error: error.message || "No se pudo usar el asistente."
+      });
+    }
+
     return true;
   }
 

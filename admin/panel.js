@@ -41,6 +41,26 @@ const deleteMovieModal = document.getElementById("delete-movie-modal");
 const deleteMovieTitle = document.getElementById("delete-movie-title");
 const btnDeleteMovieConfirm = document.getElementById("btn-delete-movie-confirm");
 const btnDeleteMovieCancel = document.getElementById("btn-delete-movie-cancel");
+const assistantLauncher = document.getElementById("assistant-launcher");
+const assistantPanel = document.getElementById("assistant-panel");
+const assistantClose = document.getElementById("assistant-close");
+const assistantModeSummary = document.getElementById("assistant-mode-summary");
+const assistantModeButton = document.getElementById("assistant-mode-button");
+const assistantModeLabel = document.getElementById("assistant-mode-label");
+const assistantModeMenu = document.getElementById("assistant-mode-menu");
+const assistantModeOptions = Array.from(document.querySelectorAll(".assistant-mode-option[data-assistant-action]"));
+const assistantMessages = document.getElementById("assistant-messages");
+const assistantForm = document.getElementById("assistant-form");
+const assistantPrompt = document.getElementById("assistant-prompt");
+const assistantSource = document.getElementById("assistant-source");
+const assistantSourceWrap = document.getElementById("assistant-source-wrap");
+const assistantSend = document.getElementById("assistant-send");
+const assistantClear = document.getElementById("assistant-clear");
+const assistantStatus = document.getElementById("assistant-status");
+const assistantReadDescription = document.getElementById("assistant-read-description");
+const assistantReadModal = document.getElementById("assistant-read-modal");
+const assistantReadConfirm = document.getElementById("assistant-read-confirm");
+const assistantReadCancel = document.getElementById("assistant-read-cancel");
 const sessionCountdown = document.getElementById("session-countdown");
 const sessionPill = document.getElementById("session-pill");
 const sessionPillTime = document.getElementById("session-pill-time");
@@ -65,6 +85,7 @@ let bannerSourceUrl = "";
 let cuevanaPageUrl = "";
 let vimeusGeneratedUrl = "";
 let heightSyncFrame = 0;
+let currentAssistantAction = "chat";
 
 const STORAGE_BUCKET = "movie-assets";
 const POSTER_UPLOAD_SETTINGS = {
@@ -85,6 +106,20 @@ const VIMEUS_DEFAULTS = {
   theme: "blue",
   font: "v3",
   overlay: "v2"
+};
+const ASSISTANT_PROMPTS = {
+  chat: {
+    label: "Hablar con IA",
+    summary: "Conversacion libre para lo que necesites.",
+    promptPlaceholder: "Escribe aqui como si fuera un chat normal...",
+    sourcePlaceholder: "Pega aqui un texto si quieres que tambien lo tome en cuenta."
+  },
+  text: {
+    label: "Trabajar texto",
+    summary: "Ideal para acortar, resumir o mejorar cualquier texto largo.",
+    promptPlaceholder: "Ej. acorta este texto y dejalo mas claro, sin perder la idea principal.",
+    sourcePlaceholder: "Pega aqui el texto que quieres acortar, resumir o mejorar."
+  }
 };
 
 function slugify(text) {
@@ -229,6 +264,15 @@ function setEstado(message, type = "") {
   estado.className = `estado ${type}`.trim();
 }
 
+function setAssistantStatus(message, type = "") {
+  if (!assistantStatus) {
+    return;
+  }
+
+  assistantStatus.textContent = message;
+  assistantStatus.className = `assistant-status ${type}`.trim();
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -236,6 +280,159 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function formatAssistantText(value) {
+  return escapeHtml(value).replace(/\n/g, "<br>");
+}
+
+function openAssistantPanel() {
+  assistantPanel?.classList.remove("oculto");
+  assistantPrompt?.focus({ preventScroll: true });
+}
+
+function closeAssistantPanel() {
+  assistantPanel?.classList.add("oculto");
+  closeAssistantModeMenu();
+}
+
+function openAssistantModeMenu() {
+  if (!assistantModeMenu || !assistantModeButton) {
+    return;
+  }
+
+  assistantModeMenu.classList.remove("oculto");
+  assistantModeButton.setAttribute("aria-expanded", "true");
+}
+
+function closeAssistantModeMenu() {
+  if (!assistantModeMenu || !assistantModeButton) {
+    return;
+  }
+
+  assistantModeMenu.classList.add("oculto");
+  assistantModeButton.setAttribute("aria-expanded", "false");
+}
+
+function toggleAssistantModeMenu() {
+  if (!assistantModeMenu || assistantModeMenu.classList.contains("oculto")) {
+    openAssistantModeMenu();
+    return;
+  }
+
+  closeAssistantModeMenu();
+}
+
+function appendAssistantMessage(role, text, options = {}) {
+  if (!assistantMessages) {
+    return;
+  }
+
+  const item = document.createElement("article");
+  item.className = `assistant-message assistant-message-${role}`;
+  item.innerHTML = `
+    <strong>${role === "user" ? "Tú" : "Asistente"}</strong>
+    <p>${formatAssistantText(text)}</p>
+  `;
+
+  if (role === "assistant" && options.allowActions) {
+    const actions = document.createElement("div");
+    actions.className = "assistant-message-actions";
+
+    const copyButton = document.createElement("button");
+    copyButton.type = "button";
+    copyButton.textContent = "Copiar";
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        setAssistantStatus("Respuesta copiada. Puedes pegarla donde quieras.", "ok");
+      } catch {
+        setAssistantStatus("No pude copiarla automaticamente. Copiala manualmente.", "error");
+      }
+    });
+
+    const applyButton = document.createElement("button");
+    applyButton.type = "button";
+    applyButton.textContent = "Usar en descripcion";
+    applyButton.addEventListener("click", () => {
+      form.elements.descripcion.value = text;
+      queueCatalogHeightSync();
+      setAssistantStatus("Respuesta puesta directamente en descripcion.", "ok");
+    });
+
+    actions.appendChild(copyButton);
+    actions.appendChild(applyButton);
+    item.appendChild(actions);
+  }
+
+  assistantMessages.appendChild(item);
+  assistantMessages.scrollTop = assistantMessages.scrollHeight;
+}
+
+function setAssistantAction(action) {
+  currentAssistantAction = ASSISTANT_PROMPTS[action] ? action : "chat";
+  const currentConfig = ASSISTANT_PROMPTS[currentAssistantAction];
+
+  assistantModeOptions.forEach(button => {
+    button.classList.toggle("active", button.dataset.assistantAction === currentAssistantAction);
+  });
+
+  if (assistantModeLabel) {
+    assistantModeLabel.textContent = currentConfig.label;
+  }
+
+  if (assistantModeSummary) {
+    assistantModeSummary.textContent = currentConfig.summary;
+  }
+
+  if (assistantPrompt) {
+    assistantPrompt.placeholder = currentConfig.promptPlaceholder;
+  }
+
+  if (assistantSource) {
+    assistantSource.placeholder = currentConfig.sourcePlaceholder;
+  }
+
+  if (assistantSourceWrap) {
+    assistantSourceWrap.classList.toggle("oculto", currentAssistantAction === "chat");
+  }
+
+  closeAssistantModeMenu();
+}
+
+async function getPanelAccessToken() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  const token = data?.session?.access_token || "";
+
+  if (!token) {
+    throw new Error("Tu sesion del panel no esta disponible.");
+  }
+
+  return token;
+}
+
+async function sendAssistantRequest(payload) {
+  const token = await getPanelAccessToken();
+  const response = await fetch("/api/admin-assistant", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify(payload)
+  });
+  const result = await readJsonResponse(response, "No se pudo leer la respuesta del asistente.");
+
+  if (!response.ok || !result.ok) {
+    throw new Error(result.error || "No se pudo obtener respuesta del asistente.");
+  }
+
+  return result.text || "";
 }
 
 async function readJsonResponse(response, fallbackMessage) {
@@ -1037,6 +1234,101 @@ async function startPanel() {
   setActiveView(currentView);
 }
 
+async function handleAssistantSubmit(event) {
+  event.preventDefault();
+
+  const prompt = String(assistantPrompt?.value || "").trim();
+  const sourceText = String(assistantSource?.value || "").trim();
+
+  if (!prompt && !sourceText) {
+    setAssistantStatus("Escribe algo o pega un texto para poder ayudarte.", "error");
+    return;
+  }
+
+  openAssistantPanel();
+  appendAssistantMessage(
+    "user",
+    prompt || (currentAssistantAction === "text" ? "Trabaja este texto." : "Quiero hablar contigo.")
+  );
+
+  assistantSend.disabled = true;
+  setAssistantStatus("Pensando una respuesta corta y util...");
+
+  try {
+    const text = await sendAssistantRequest({
+      action: currentAssistantAction,
+      prompt,
+      sourceText
+    });
+
+    if (!text.trim()) {
+      throw new Error("La IA no devolvio texto util.");
+    }
+
+    appendAssistantMessage(
+      "assistant",
+      `${text}\n\n¿Quieres copiarlo o ponerlo directo en descripcion?`,
+      { allowActions: true }
+    );
+    setAssistantStatus("Respuesta lista.", "ok");
+  } catch (error) {
+    appendAssistantMessage("assistant", error.message || "No pude responderte ahorita.");
+    setAssistantStatus(error.message || "No se pudo usar el asistente.", "error");
+  } finally {
+    assistantSend.disabled = false;
+  }
+}
+
+function clearAssistantComposer() {
+  if (assistantPrompt) {
+    assistantPrompt.value = "";
+  }
+
+  if (assistantSource) {
+    assistantSource.value = "";
+  }
+
+  setAssistantStatus("Listo.");
+}
+
+function openAssistantReadModal() {
+  closeAssistantModeMenu();
+
+  if (!form.elements.descripcion.value.trim()) {
+    setAssistantStatus("La descripcion esta vacia, asi que no hay nada que leer.", "error");
+    return;
+  }
+
+  assistantReadModal?.classList.remove("oculto");
+}
+
+function closeAssistantReadModal() {
+  assistantReadModal?.classList.add("oculto");
+}
+
+function useCurrentDescriptionInAssistant() {
+  const description = form.elements.descripcion.value.trim();
+
+  if (!description) {
+    setAssistantStatus("La descripcion esta vacia, asi que no hay nada que usar.", "error");
+    return;
+  }
+
+  assistantSource.value = description;
+  setAssistantAction("text");
+  openAssistantPanel();
+  setAssistantStatus("Descripcion actual cargada. Ahora dime que quieres hacer con ella.", "ok");
+}
+
+function handleAssistantTextareaKeydown(event) {
+  if (event.key !== "Enter" || event.shiftKey) {
+    return;
+  }
+
+  event.preventDefault();
+  assistantForm?.requestSubmit();
+}
+
 form.elements.titulo.addEventListener("input", () => {
   if (!form.elements.id.dataset.manual) {
     form.elements.id.value = slugify(form.elements.titulo.value);
@@ -1138,6 +1430,24 @@ form.addEventListener("submit", async event => {
     setEstado(error.message || "No se pudo guardar la pelicula.", "error");
   }
 });
+
+assistantForm?.addEventListener("submit", handleAssistantSubmit);
+assistantLauncher?.addEventListener("click", openAssistantPanel);
+assistantClose?.addEventListener("click", closeAssistantPanel);
+assistantClear?.addEventListener("click", clearAssistantComposer);
+assistantReadDescription?.addEventListener("click", openAssistantReadModal);
+assistantReadCancel?.addEventListener("click", closeAssistantReadModal);
+assistantReadConfirm?.addEventListener("click", () => {
+  closeAssistantReadModal();
+  useCurrentDescriptionInAssistant();
+});
+assistantReadModal?.addEventListener("click", event => {
+  if (event.target === assistantReadModal) {
+    closeAssistantReadModal();
+  }
+});
+assistantPrompt?.addEventListener("keydown", handleAssistantTextareaKeydown);
+assistantSource?.addEventListener("keydown", handleAssistantTextareaKeydown);
 
 btnLimpiar.addEventListener("click", clearForm);
 btnRecargar.addEventListener("click", async () => {
@@ -1243,6 +1553,17 @@ requestFilters.forEach(button => {
   });
 });
 
+assistantModeOptions.forEach(button => {
+  button.addEventListener("click", () => {
+    setAssistantAction(button.dataset.assistantAction);
+  });
+});
+
+assistantModeButton?.addEventListener("click", event => {
+  event.stopPropagation();
+  toggleAssistantModeMenu();
+});
+
 vimeusTmdb.addEventListener("input", () => {
   if (vimeusGeneratedUrl) {
     vimeusGeneratedUrl = "";
@@ -1268,6 +1589,27 @@ cuevanaSource.addEventListener("click", () => {
 
   window.open(cuevanaPageUrl, "_blank", "noopener,noreferrer");
 });
+
+document.addEventListener("click", event => {
+  if (
+    assistantModeMenu &&
+    !assistantModeMenu.classList.contains("oculto") &&
+    !event.target.closest(".assistant-mode-picker")
+  ) {
+    closeAssistantModeMenu();
+  }
+
+  if (
+    assistantPanel &&
+    !assistantPanel.classList.contains("oculto") &&
+    !event.target.closest("#assistant-panel") &&
+    !event.target.closest("#assistant-launcher")
+  ) {
+    closeAssistantPanel();
+  }
+});
+
+setAssistantAction("chat");
 
 if (window.__PELISPLUS_SESSION_READY__) {
   startPanel();

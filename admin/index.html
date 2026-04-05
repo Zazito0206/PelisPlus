@@ -208,6 +208,66 @@
     </div>
   </div>
 
+  <button type="button" id="assistant-launcher" class="assistant-launcher" aria-label="Abrir asistente IA">
+    IA
+  </button>
+
+  <aside id="assistant-panel" class="assistant-panel oculto" aria-live="polite">
+    <div class="assistant-head">
+      <div>
+        <p class="eyebrow">Asistente IA</p>
+        <h2>Chat del panel</h2>
+        <p id="assistant-mode-summary" class="assistant-mode-summary">Conversacion libre para lo que necesites.</p>
+      </div>
+      <button type="button" id="assistant-close" class="assistant-close" aria-label="Cerrar asistente">×</button>
+    </div>
+
+    <div class="assistant-toolbar">
+      <div class="assistant-mode-picker">
+        <button type="button" id="assistant-mode-button" class="assistant-mode-button" aria-haspopup="menu" aria-expanded="false">
+          <span id="assistant-mode-label">Hablar con IA</span>
+          <span class="assistant-mode-caret" aria-hidden="true">▾</span>
+        </button>
+        <div id="assistant-mode-menu" class="assistant-mode-menu oculto" role="menu">
+          <button type="button" class="assistant-mode-option active" data-assistant-action="chat" role="menuitem">Hablar con IA</button>
+          <button type="button" class="assistant-mode-option" data-assistant-action="text" role="menuitem">Trabajar texto</button>
+          <button type="button" id="assistant-read-description" class="assistant-mode-option accent" role="menuitem">Leer descripcion actual</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="assistant-messages" class="assistant-messages"></div>
+
+    <form id="assistant-form" class="assistant-form">
+      <label id="assistant-source-wrap" class="assistant-source-wrap oculto">
+        <span class="assistant-field-label">Texto base</span>
+        <textarea id="assistant-source" rows="5" placeholder="Pega aqui el texto que quieres acortar, resumir o mejorar"></textarea>
+      </label>
+
+      <div class="assistant-composer">
+        <textarea id="assistant-prompt" rows="2" placeholder="Escribe aqui como si fuera un chat normal..."></textarea>
+        <div class="assistant-actions">
+          <button type="button" id="assistant-clear" class="assistant-clear-button">Limpiar</button>
+          <button type="submit" id="assistant-send" class="assistant-send-button" aria-label="Enviar mensaje">↑</button>
+        </div>
+      </div>
+    </form>
+
+    <p id="assistant-status" class="assistant-status">Listo.</p>
+  </aside>
+
+  <div id="assistant-read-modal" class="session-modal oculto" aria-live="polite">
+    <div class="session-card assistant-read-card">
+      <p class="eyebrow">Usar descripcion actual</p>
+      <h2>Quieres que lea la descripcion del formulario?</h2>
+      <p class="session-copy">Si aceptas, copiaré la descripcion actual al asistente para resumirla o mejorarla sin que tengas que pegarla.</p>
+      <div class="session-actions">
+        <button type="button" id="assistant-read-confirm" class="primary">Si, leer descripcion</button>
+        <button type="button" id="assistant-read-cancel" class="ghost">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/admin/supabase-config.js"></script>
   <script src="/admin/supabase-client.js"></script>
