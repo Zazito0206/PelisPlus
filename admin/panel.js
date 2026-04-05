@@ -43,10 +43,13 @@ const btnDeleteMovieConfirm = document.getElementById("btn-delete-movie-confirm"
 const btnDeleteMovieCancel = document.getElementById("btn-delete-movie-cancel");
 const assistantLauncher = document.getElementById("assistant-launcher");
 const assistantPanel = document.getElementById("assistant-panel");
+const assistantMinimize = document.getElementById("assistant-minimize");
+const assistantExpand = document.getElementById("assistant-expand");
 const assistantClose = document.getElementById("assistant-close");
 const assistantModeSummary = document.getElementById("assistant-mode-summary");
 const assistantModeButton = document.getElementById("assistant-mode-button");
 const assistantModeLabel = document.getElementById("assistant-mode-label");
+const assistantModeCaret = document.querySelector(".assistant-mode-caret");
 const assistantModeMenu = document.getElementById("assistant-mode-menu");
 const assistantModeOptions = Array.from(document.querySelectorAll(".assistant-mode-option[data-assistant-action]"));
 const assistantMessages = document.getElementById("assistant-messages");
@@ -86,6 +89,7 @@ let cuevanaPageUrl = "";
 let vimeusGeneratedUrl = "";
 let heightSyncFrame = 0;
 let currentAssistantAction = "chat";
+let assistantWelcomed = false;
 
 const STORAGE_BUCKET = "movie-assets";
 const POSTER_UPLOAD_SETTINGS = {
@@ -121,6 +125,18 @@ const ASSISTANT_PROMPTS = {
     sourcePlaceholder: "Pega aqui el texto que quieres acortar, resumir o mejorar."
   }
 };
+
+if (assistantClose) {
+  assistantClose.innerHTML = "&times;";
+}
+
+if (assistantModeCaret) {
+  assistantModeCaret.innerHTML = "&#9662;";
+}
+
+if (assistantSend) {
+  assistantSend.innerHTML = "&#8593;";
+}
 
 function slugify(text) {
   return String(text || "")
@@ -286,14 +302,76 @@ function formatAssistantText(value) {
   return escapeHtml(value).replace(/\n/g, "<br>");
 }
 
+function ensureAssistantWelcomeMessage() {
+  if (assistantWelcomed || !assistantMessages) {
+    return;
+  }
+
+  appendAssistantMessage(
+    "assistant",
+    "¡Hola! Soy Pelis+ IA. ¿En que puedo ayudarte hoy?"
+  );
+  assistantWelcomed = true;
+}
+
+function syncAssistantExpandButton() {
+  if (!assistantExpand || !assistantPanel) {
+    return;
+  }
+
+  const isExpanded = assistantPanel.classList.contains("expanded");
+  assistantExpand.innerHTML = "&#9633;";
+  assistantExpand.setAttribute(
+    "aria-label",
+    isExpanded ? "Volver el asistente al tamano pequeno" : "Expandir asistente"
+  );
+}
+
+function resetAssistantConversation() {
+  if (assistantMessages) {
+    assistantMessages.innerHTML = "";
+  }
+
+  if (assistantPrompt) {
+    assistantPrompt.value = "";
+    assistantPrompt.style.height = "";
+  }
+
+  if (assistantSource) {
+    assistantSource.value = "";
+    assistantSource.style.height = "";
+  }
+
+  assistantWelcomed = false;
+  setAssistantAction("chat");
+  setAssistantStatus("Listo.");
+}
+
 function openAssistantPanel() {
   assistantPanel?.classList.remove("oculto");
+
+  if (!assistantWelcomed) {
+    appendAssistantMessage(
+      "assistant",
+      "\u00a1Hola! Soy Pelis+ IA. \u00bfEn que puedo ayudarte hoy?"
+    );
+    assistantWelcomed = true;
+  }
+
+  syncAssistantExpandButton();
   assistantPrompt?.focus({ preventScroll: true });
 }
 
 function closeAssistantPanel() {
   assistantPanel?.classList.add("oculto");
+  assistantPanel?.classList.remove("expanded");
   closeAssistantModeMenu();
+  syncAssistantExpandButton();
+}
+
+function closeAssistantAndReset() {
+  closeAssistantPanel();
+  resetAssistantConversation();
 }
 
 function openAssistantModeMenu() {
@@ -321,6 +399,15 @@ function toggleAssistantModeMenu() {
   }
 
   closeAssistantModeMenu();
+}
+
+function toggleAssistantExpanded() {
+  if (!assistantPanel || assistantPanel.classList.contains("oculto")) {
+    openAssistantPanel();
+  }
+
+  assistantPanel?.classList.toggle("expanded");
+  syncAssistantExpandButton();
 }
 
 function appendAssistantMessage(role, text, options = {}) {
@@ -1433,7 +1520,9 @@ form.addEventListener("submit", async event => {
 
 assistantForm?.addEventListener("submit", handleAssistantSubmit);
 assistantLauncher?.addEventListener("click", openAssistantPanel);
-assistantClose?.addEventListener("click", closeAssistantPanel);
+assistantMinimize?.addEventListener("click", closeAssistantPanel);
+assistantExpand?.addEventListener("click", toggleAssistantExpanded);
+assistantClose?.addEventListener("click", closeAssistantAndReset);
 assistantClear?.addEventListener("click", clearAssistantComposer);
 assistantReadDescription?.addEventListener("click", openAssistantReadModal);
 assistantReadCancel?.addEventListener("click", closeAssistantReadModal);
