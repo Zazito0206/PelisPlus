@@ -1376,20 +1376,25 @@ async function handleAssistantSubmit(event) {
     appendAssistantMessage("assistant", error.message || "No pude responderte ahorita.");
     setAssistantStatus(error.message || "No se pudo usar el asistente.", "error");
   } finally {
+    clearAssistantComposer(false);
     assistantSend.disabled = false;
   }
 }
 
-function clearAssistantComposer() {
+function clearAssistantComposer(resetStatus = true) {
   if (assistantPrompt) {
     assistantPrompt.value = "";
+    assistantPrompt.style.height = "";
   }
 
   if (assistantSource) {
     assistantSource.value = "";
+    assistantSource.style.height = "";
   }
 
-  setAssistantStatus("Listo.");
+  if (resetStatus) {
+    setAssistantStatus("Listo.");
+  }
 }
 
 function openAssistantReadModal() {
