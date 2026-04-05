@@ -2,6 +2,7 @@ const form = document.getElementById("movie-form");
 const estado = document.getElementById("estado");
 const listaPeliculas = document.getElementById("lista-peliculas");
 const listaSolicitudes = document.getElementById("lista-solicitudes");
+const requestsPanel = document.getElementById("requests-panel");
 const buscador = document.getElementById("buscador");
 const btnLimpiar = document.getElementById("btn-limpiar");
 const btnRecargar = document.getElementById("btn-recargar");
@@ -14,6 +15,9 @@ const listTitle = document.getElementById("list-title");
 const searchLabel = document.getElementById("search-label");
 const requestCountBadge = document.getElementById("request-count-badge");
 const panelTabs = Array.from(document.querySelectorAll(".panel-tab"));
+const requestFilters = Array.from(document.querySelectorAll(".request-filter"));
+const pendingRequestCount = document.getElementById("pending-request-count");
+const completedRequestCount = document.getElementById("completed-request-count");
 const btnBuscarTodo = document.getElementById("btn-buscar-todo");
 const btnClearPoster = document.getElementById("btn-clear-poster");
 const btnClearBanner = document.getElementById("btn-clear-banner");
@@ -50,6 +54,7 @@ const supabaseClient = window.supabaseAdmin;
 let catalogo = [];
 let solicitudes = [];
 let currentView = "catalogo";
+let currentRequestFilter = "pendientes";
 let sessionExpiresAt = 0;
 let sessionTick = null;
 let warningVisible = false;
@@ -380,6 +385,7 @@ function getRequestStatusLabel(status) {
 
 function updateRequestBadge() {
   const pendientes = solicitudes.filter(item => item.estado !== "agregada").length;
+  const agregadas = solicitudes.filter(item => item.estado === "agregada").length;
   const total = String(pendientes);
 
   if (requestCountBadge) {
@@ -390,6 +396,14 @@ function updateRequestBadge() {
     heroRequestCountBadge.textContent = total;
     heroRequestCountBadge.classList.toggle("is-empty", pendientes === 0);
   }
+
+  if (pendingRequestCount) {
+    pendingRequestCount.textContent = String(pendientes);
+  }
+
+  if (completedRequestCount) {
+    completedRequestCount.textContent = String(agregadas);
+  }
 }
 
 function setActiveView(view) {
@@ -397,12 +411,13 @@ function setActiveView(view) {
   const isRequestsView = currentView === "solicitudes";
 
   listaPeliculas.classList.toggle("oculto", isRequestsView);
-  listaSolicitudes.classList.toggle("oculto", !isRequestsView);
+  requestsPanel?.classList.toggle("oculto", !isRequestsView);
   listTitle.textContent = isRequestsView ? "Solicitudes de peliculas" : "Catalogo actual";
   searchLabel.textContent = isRequestsView ? "Buscar solicitud" : "Buscar";
   buscador.placeholder = isRequestsView
     ? "Titulo, contacto o estado"
     : "Titulo o categoria";
+  buscador.parentElement?.classList.toggle("oculto", isRequestsView);
 
   panelTabs.forEach(button => {
     button.classList.toggle("active", button.dataset.view === currentView);
@@ -415,6 +430,18 @@ function setActiveView(view) {
   }
 
   queueCatalogHeightSync();
+}
+
+function setRequestFilter(filter) {
+  currentRequestFilter = filter === "agregadas" ? "agregadas" : "pendientes";
+
+  requestFilters.forEach(button => {
+    button.classList.toggle("active", button.dataset.requestFilter === currentRequestFilter);
+  });
+
+  if (currentView === "solicitudes") {
+    filterRequests();
+  }
 }
 
 function fillForm(movie) {
@@ -905,13 +932,18 @@ function filterCatalog() {
 
 function filterRequests() {
   const query = buscador.value.trim().toLowerCase();
+  const baseItems = solicitudes.filter(request =>
+    currentRequestFilter === "agregadas"
+      ? request.estado === "agregada"
+      : request.estado !== "agregada"
+  );
 
   if (!query) {
-    renderRequests(solicitudes);
+    renderRequests(baseItems);
     return;
   }
 
-  const filtered = solicitudes.filter(request => {
+  const filtered = baseItems.filter(request => {
     const hayTitulo = request.titulo.toLowerCase().includes(query);
     const hayContacto = request.contacto.toLowerCase().includes(query);
     const hayDetalle = request.detalle.toLowerCase().includes(query);
@@ -1202,6 +1234,12 @@ buscador.addEventListener("input", () => {
 panelTabs.forEach(button => {
   button.addEventListener("click", () => {
     setActiveView(button.dataset.view);
+  });
+});
+
+requestFilters.forEach(button => {
+  button.addEventListener("click", () => {
+    setRequestFilter(button.dataset.requestFilter);
   });
 });
 

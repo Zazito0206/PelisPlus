@@ -154,7 +154,19 @@
         </label>
 
         <div id="lista-peliculas" class="lista-peliculas"></div>
-        <div id="lista-solicitudes" class="lista-peliculas oculto"></div>
+        <section id="requests-panel" class="requests-panel oculto">
+          <div class="request-filters">
+            <button type="button" class="request-filter active" data-request-filter="pendientes">
+              Pendientes
+              <span id="pending-request-count" class="request-filter-count">0</span>
+            </button>
+            <button type="button" class="request-filter" data-request-filter="agregadas">
+              Agregadas
+              <span id="completed-request-count" class="request-filter-count">0</span>
+            </button>
+          </div>
+          <div id="lista-solicitudes" class="lista-peliculas"></div>
+        </section>
       </section>
     </section>
   </main>
