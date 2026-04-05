@@ -50,6 +50,8 @@ function getSystemPrompt(action) {
     "Tu trabajo es ayudar con tareas basicas de texto en español, de forma clara y breve.",
     `En esta respuesta, enfocate principalmente en: ${actionLabel}.`,
     "Si el usuario comparte una descripcion larga, devuelvela lista para usar en la web.",
+    "No agregues preguntas finales, sugerencias de botones, llamadas a la accion ni frases como 'quieres copiarlo' o 'quieres usarlo'.",
+    "En modo texto, devuelve unicamente el resultado final limpio, sin introduccion ni cierre.",
     "No uses markdown complejo ni relleno innecesario.",
     "Responde solo con el texto util final o con una respuesta corta y directa."
   ].join(" ");

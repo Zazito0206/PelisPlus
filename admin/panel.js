@@ -302,6 +302,16 @@ function formatAssistantText(value) {
   return escapeHtml(value).replace(/\n/g, "<br>");
 }
 
+function normalizeAssistantOutput(text, options = {}) {
+  let output = String(text || "").trim();
+
+  if (options.allowActions) {
+    output = output.replace(/\n*\s*[Â\u00bf]?Quieres copiarlo o ponerlo directo en descripcion\?\s*$/i, "").trim();
+  }
+
+  return output;
+}
+
 function ensureAssistantWelcomeMessage() {
   if (assistantWelcomed || !assistantMessages) {
     return;
@@ -415,11 +425,15 @@ function appendAssistantMessage(role, text, options = {}) {
     return;
   }
 
+  const normalizedText = role === "assistant"
+    ? normalizeAssistantOutput(text, options)
+    : String(text || "");
+
   const item = document.createElement("article");
   item.className = `assistant-message assistant-message-${role}`;
   item.innerHTML = `
     <strong>${role === "user" ? "Tú" : "Asistente"}</strong>
-    <p>${formatAssistantText(text)}</p>
+    <p>${formatAssistantText(normalizedText)}</p>
   `;
 
   if (role === "assistant" && options.allowActions) {
@@ -431,7 +445,7 @@ function appendAssistantMessage(role, text, options = {}) {
     copyButton.textContent = "Copiar";
     copyButton.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(normalizedText);
         setAssistantStatus("Respuesta copiada. Puedes pegarla donde quieras.", "ok");
       } catch {
         setAssistantStatus("No pude copiarla automaticamente. Copiala manualmente.", "error");
@@ -442,7 +456,7 @@ function appendAssistantMessage(role, text, options = {}) {
     applyButton.type = "button";
     applyButton.textContent = "Usar en descripcion";
     applyButton.addEventListener("click", () => {
-      form.elements.descripcion.value = text;
+      form.elements.descripcion.value = normalizedText;
       queueCatalogHeightSync();
       setAssistantStatus("Respuesta puesta directamente en descripcion.", "ok");
     });
