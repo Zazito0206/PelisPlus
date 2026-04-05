@@ -90,6 +90,7 @@ let vimeusGeneratedUrl = "";
 let heightSyncFrame = 0;
 let currentAssistantAction = "chat";
 let assistantWelcomed = false;
+let assistantConversationHistory = [];
 
 const STORAGE_BUCKET = "movie-assets";
 const POSTER_UPLOAD_SETTINGS = {
@@ -312,6 +313,24 @@ function normalizeAssistantOutput(text, options = {}) {
   return output;
 }
 
+function pushAssistantHistory(role, text) {
+  const normalizedRole = role === "assistant" ? "assistant" : "user";
+  const normalizedText = String(text || "").trim();
+
+  if (!normalizedText) {
+    return;
+  }
+
+  assistantConversationHistory.push({
+    role: normalizedRole,
+    content: normalizedText
+  });
+
+  if (assistantConversationHistory.length > 12) {
+    assistantConversationHistory = assistantConversationHistory.slice(-12);
+  }
+}
+
 function ensureAssistantWelcomeMessage() {
   if (assistantWelcomed || !assistantMessages) {
     return;
@@ -353,6 +372,7 @@ function resetAssistantConversation() {
   }
 
   assistantWelcomed = false;
+  assistantConversationHistory = [];
   setAssistantAction("chat");
   setAssistantStatus("Listo.");
 }
@@ -363,7 +383,8 @@ function openAssistantPanel() {
   if (!assistantWelcomed) {
     appendAssistantMessage(
       "assistant",
-      "\u00a1Hola! Soy Pelis+ IA. \u00bfEn que puedo ayudarte hoy?"
+      "\u00a1Hola! Soy Pelis+ IA. \u00bfEn que puedo ayudarte hoy?",
+      { skipHistory: true }
     );
     assistantWelcomed = true;
   }
@@ -468,6 +489,10 @@ function appendAssistantMessage(role, text, options = {}) {
 
   assistantMessages.appendChild(item);
   assistantMessages.scrollTop = assistantMessages.scrollHeight;
+
+  if (!options.skipHistory && (role === "user" || role === "assistant")) {
+    pushAssistantHistory(role, normalizedText);
+  }
 }
 
 function setAssistantAction(action) {
@@ -1351,6 +1376,7 @@ async function handleAssistantSubmit(event) {
     "user",
     prompt || (currentAssistantAction === "text" ? "Trabaja este texto." : "Quiero hablar contigo.")
   );
+  clearAssistantComposer(false);
 
   assistantSend.disabled = true;
   setAssistantStatus("Pensando una respuesta corta y util...");
@@ -1359,7 +1385,8 @@ async function handleAssistantSubmit(event) {
     const text = await sendAssistantRequest({
       action: currentAssistantAction,
       prompt,
-      sourceText
+      sourceText,
+      history: assistantConversationHistory.slice(0, -1)
     });
 
     if (!text.trim()) {
@@ -1368,15 +1395,14 @@ async function handleAssistantSubmit(event) {
 
     appendAssistantMessage(
       "assistant",
-      `${text}\n\n¿Quieres copiarlo o ponerlo directo en descripcion?`,
-      { allowActions: true }
+      text,
+      { allowActions: currentAssistantAction === "text" }
     );
     setAssistantStatus("Respuesta lista.", "ok");
   } catch (error) {
     appendAssistantMessage("assistant", error.message || "No pude responderte ahorita.");
     setAssistantStatus(error.message || "No se pudo usar el asistente.", "error");
   } finally {
-    clearAssistantComposer(false);
     assistantSend.disabled = false;
   }
 }

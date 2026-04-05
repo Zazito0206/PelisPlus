@@ -73,6 +73,37 @@ function buildUserPrompt(action, prompt, sourceText) {
   return parts.join("\n\n");
 }
 
+function normalizeHistory(history) {
+  if (!Array.isArray(history)) {
+    return [];
+  }
+
+  return history
+    .map(item => ({
+      role: item?.role === "assistant" ? "assistant" : "user",
+      content: String(item?.content || "").trim()
+    }))
+    .filter(item => item.content)
+    .slice(-12);
+}
+
+function buildMessages(action, prompt, sourceText, history) {
+  const messages = [
+    {
+      role: "system",
+      content: getSystemPrompt(action)
+    }
+  ];
+
+  messages.push(...normalizeHistory(history));
+  messages.push({
+    role: "user",
+    content: buildUserPrompt(action, prompt, sourceText)
+  });
+
+  return messages;
+}
+
 function extractAssistantText(data) {
   const content = data?.choices?.[0]?.message?.content;
 
@@ -122,6 +153,7 @@ module.exports = async (req, res) => {
     const action = String(body.action || "chat").trim();
     const prompt = String(body.prompt || "").trim();
     const sourceText = String(body.sourceText || "").trim();
+    const history = body.history;
 
     if (!prompt && !sourceText) {
       throw new Error("Debes enviar una instruccion o un texto base.");
@@ -137,16 +169,7 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         model: "openrouter/free",
-        messages: [
-          {
-            role: "system",
-            content: getSystemPrompt(action)
-          },
-          {
-            role: "user",
-            content: buildUserPrompt(action, prompt, sourceText)
-          }
-        ]
+        messages: buildMessages(action, prompt, sourceText, history)
       })
     });
 
