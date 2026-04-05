@@ -446,6 +446,10 @@ function appendAssistantMessage(role, text, options = {}) {
     return;
   }
 
+  const shouldStickToBottom =
+    options.forceScroll ||
+    (assistantMessages.scrollHeight - assistantMessages.scrollTop - assistantMessages.clientHeight) < 48;
+
   const normalizedText = role === "assistant"
     ? normalizeAssistantOutput(text, options)
     : String(text || "");
@@ -488,7 +492,10 @@ function appendAssistantMessage(role, text, options = {}) {
   }
 
   assistantMessages.appendChild(item);
-  assistantMessages.scrollTop = assistantMessages.scrollHeight;
+
+  if (shouldStickToBottom) {
+    assistantMessages.scrollTop = assistantMessages.scrollHeight;
+  }
 
   if (!options.skipHistory && (role === "user" || role === "assistant")) {
     pushAssistantHistory(role, normalizedText);
@@ -1374,7 +1381,8 @@ async function handleAssistantSubmit(event) {
   openAssistantPanel();
   appendAssistantMessage(
     "user",
-    prompt || (currentAssistantAction === "text" ? "Trabaja este texto." : "Quiero hablar contigo.")
+    prompt || (currentAssistantAction === "text" ? "Trabaja este texto." : "Quiero hablar contigo."),
+    { forceScroll: true }
   );
   clearAssistantComposer(false);
 
@@ -1396,7 +1404,10 @@ async function handleAssistantSubmit(event) {
     appendAssistantMessage(
       "assistant",
       text,
-      { allowActions: currentAssistantAction === "text" }
+      {
+        allowActions: currentAssistantAction === "text",
+        forceScroll: true
+      }
     );
     setAssistantStatus("Respuesta lista.", "ok");
   } catch (error) {

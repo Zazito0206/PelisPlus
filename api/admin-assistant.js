@@ -49,6 +49,8 @@ function getSystemPrompt(action) {
     "Eres un asistente interno de Pelis+ para el panel admin.",
     "Tu trabajo es ayudar con tareas basicas de texto en español, de forma clara y breve.",
     `En esta respuesta, enfocate principalmente en: ${actionLabel}.`,
+    "Debes tomar en cuenta la conversacion reciente del mismo chat antes de responder.",
+    "Si el usuario hace una pregunta corta de seguimiento como 'y ella', 'de que', 'cual', 'por que', 'que?', o algo parecido, asumelo como referencia al tema mas reciente del historial salvo que sea imposible entenderlo.",
     "Si el usuario comparte una descripcion larga, devuelvela lista para usar en la web.",
     "No agregues preguntas finales, sugerencias de botones, llamadas a la accion ni frases como 'quieres copiarlo' o 'quieres usarlo'.",
     "En modo texto, devuelve unicamente el resultado final limpio, sin introduccion ni cierre.",
