@@ -116,7 +116,7 @@ const ASSISTANT_PROMPTS = {
   chat: {
     label: "Hablar con IA",
     summary: "Conversacion libre para lo que necesites.",
-    promptPlaceholder: "Escribe aqui como si fuera un chat normal...",
+    promptPlaceholder: "Escribe...",
     sourcePlaceholder: "Pega aqui un texto si quieres que tambien lo tome en cuenta."
   },
   text: {
