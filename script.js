@@ -173,7 +173,14 @@ function updateRequestContactFields() {
   }
 
   if (requestCountryCode && requestCountry) {
-    requestCountryCode.textContent = requestCountry.value || "+503";
+    requestCountryCode.textContent = requestCountry.value || "+";
+  }
+
+  if (requestCountry) {
+    requestCountry.required = isWhatsapp;
+    if (!isWhatsapp) {
+      requestCountry.value = "";
+    }
   }
 
   if (requestWhatsapp) {
@@ -199,6 +206,10 @@ function buildRequestContact() {
     const number = String(requestWhatsapp?.value || "")
       .replace(/[^\d\s-]/g, "")
       .trim();
+
+    if (!code) {
+      throw new Error("Selecciona tu pais para poder avisarte por WhatsApp.");
+    }
 
     if (!number) {
       throw new Error("Escribe el numero de WhatsApp para poder avisarte.");
