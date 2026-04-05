@@ -122,7 +122,7 @@ const ASSISTANT_PROMPTS = {
   text: {
     label: "Trabajar texto",
     summary: "Ideal para acortar, resumir o mejorar cualquier texto largo.",
-    promptPlaceholder: "Ej. acorta este texto y dejalo mas claro, sin perder la idea principal.",
+    promptPlaceholder: "",
     sourcePlaceholder: "Pega aqui el texto que quieres acortar, resumir o mejorar."
   }
 };

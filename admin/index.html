@@ -37,23 +37,23 @@
           <p>Si dejas el mismo titulo o ID, se actualiza la pelicula existente.</p>
         </div>
 
-        <form id="movie-form" class="movie-form">
+        <form id="movie-form" class="movie-form" autocomplete="off">
           <div class="field-grid">
             <label>
               <span>Titulo</span>
-              <input type="text" name="titulo" id="titulo" required>
+              <input type="text" name="titulo" id="titulo" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </label>
 
             <label>
               <span>ID</span>
-              <input type="text" name="id" id="id" placeholder="Se genera automaticamente">
+              <input type="text" name="id" id="id" placeholder="Se genera automaticamente" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </label>
 
             <section class="cuevana-helper">
               <div class="cuevana-inline">
                 <button type="button" id="btn-buscar-todo" class="primary helper-inline">Buscar todo</button>
                 <label class="cuevana-source">
-                  <input type="text" id="cuevana-source" readonly placeholder="Aqui aparecera el enlace usado">
+                  <input type="text" id="cuevana-source" readonly placeholder="Aqui aparecera el enlace usado" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 </label>
               </div>
             </section>
@@ -61,14 +61,14 @@
             <section class="vimeus-helper">
               <div class="vimeus-inline">
                 <label class="vimeus-code">
-                  <input type="text" id="vimeus-tmdb" inputmode="numeric" placeholder="1084242">
+                  <input type="text" id="vimeus-tmdb" inputmode="numeric" placeholder="0000" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 </label>
                 <div class="vimeus-actions">
                   <button type="button" id="btn-generar-vimeus" class="secondary helper-inline">Generar enlace</button>
                   <button type="button" id="btn-usar-vimeus" class="primary helper-inline" disabled>Usar enlace</button>
                 </div>
                 <label class="vimeus-preview">
-                  <input type="text" id="vimeus-preview" readonly placeholder="Aqui aparecera el enlace generado para revisarlo">
+                  <input type="text" id="vimeus-preview" readonly placeholder="Aqui aparecera el enlace generado para revisarlo" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 </label>
               </div>
             </section>
@@ -84,7 +84,7 @@
               </label>
               <label>
                 <span>Ruta portada</span>
-                <input type="text" name="imagen" id="imagen" readonly placeholder="Se genera automaticamente">
+                <input type="text" name="imagen" id="imagen" readonly placeholder="Se genera automaticamente" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
               </label>
               <p id="poster-status" class="poster-status">Escribe el titulo y usa el boton para traer la portada.</p>
               <div class="poster-preview oculto" id="poster-preview-wrap">
@@ -103,7 +103,7 @@
               </label>
               <label>
                 <span>Ruta banner</span>
-                <input type="text" name="banner" id="banner" readonly placeholder="Se genera automaticamente">
+                <input type="text" name="banner" id="banner" readonly placeholder="Se genera automaticamente" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
               </label>
               <p id="banner-status" class="poster-status">Usa el mismo titulo para intentar traer un banner panoramico.</p>
               <div class="poster-preview poster-preview-banner oculto" id="banner-preview-wrap">
@@ -113,17 +113,17 @@
 
             <label class="full">
               <span>Enlace o archivo</span>
-              <input type="text" name="archivo" id="archivo" required placeholder="https://... o pega aqui el enlace del reproductor">
+              <input type="text" name="archivo" id="archivo" required placeholder="https://... o pega aqui el enlace del reproductor" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </label>
 
             <label class="full">
               <span>Categorias</span>
-              <input type="text" name="categoria" id="categoria" placeholder="Animacion, Fantasia">
+              <input type="text" name="categoria" id="categoria" placeholder="Animacion, Fantasia" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
             </label>
 
             <label class="full">
               <span>Descripcion</span>
-              <textarea name="descripcion" id="descripcion" rows="6" required></textarea>
+              <textarea name="descripcion" id="descripcion" rows="6" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
             </label>
           </div>
 
@@ -150,7 +150,7 @@
 
         <label class="search-box">
           <span id="search-label">Buscar</span>
-          <input type="text" id="buscador" placeholder="Titulo o categoria">
+          <input type="text" id="buscador" placeholder="Titulo o categoria" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         </label>
 
         <div id="lista-peliculas" class="lista-peliculas"></div>
@@ -243,14 +243,14 @@
 
     <div id="assistant-messages" class="assistant-messages"></div>
 
-    <form id="assistant-form" class="assistant-form">
+    <form id="assistant-form" class="assistant-form" autocomplete="off">
       <label id="assistant-source-wrap" class="assistant-source-wrap oculto">
         <span class="assistant-field-label">Texto base</span>
-        <textarea id="assistant-source" rows="5" placeholder="Pega aqui el texto que quieres acortar, resumir o mejorar"></textarea>
+        <textarea id="assistant-source" rows="5" placeholder="Pega aqui el texto que quieres acortar, resumir o mejorar" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
       </label>
 
       <div class="assistant-composer">
-        <textarea id="assistant-prompt" rows="2" placeholder="Escribe aqui como si fuera un chat normal..."></textarea>
+        <textarea id="assistant-prompt" rows="2" placeholder="Escribe aqui como si fuera un chat normal..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         <div class="assistant-actions">
           <button type="button" id="assistant-clear" class="assistant-clear-button">Limpiar</button>
           <button type="submit" id="assistant-send" class="assistant-send-button" aria-label="Enviar mensaje">↑</button>
