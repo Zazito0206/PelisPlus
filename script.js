@@ -406,9 +406,17 @@ function toggleMobileMenu() {
   menuToggle.setAttribute("aria-expanded", String(willOpen));
 }
 
-function crearCard(peli) {
+function crearCard(peli, index = 0, tipo = "default") {
   const card = document.createElement("div");
   card.className = "card";
+
+  if (tipo === "default") {
+    card.classList.add(`card-variant-${index % 4}`);
+
+    if (index % 5 === 0) {
+      card.classList.add("card-anchor");
+    }
+  }
 
   card.innerHTML = `
     <img src="${window.pelisData.resolveAssetUrl(peli.imagen)}" alt="${peli.titulo}" draggable="false" loading="lazy" decoding="async">
@@ -506,8 +514,8 @@ function crearCarrusel(titulo, peliculas, tipo = "default") {
     carrusel.scrollLeft += event.deltaY + event.deltaX;
   }, { passive: false });
 
-  peliculas.forEach(peli => {
-    carrusel.appendChild(crearCard(peli));
+  peliculas.forEach((peli, index) => {
+    carrusel.appendChild(crearCard(peli, index, tipo));
   });
 
   contenedor.appendChild(section);
