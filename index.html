@@ -140,6 +140,23 @@
         </div>
     </section>
 
+    <div id="request-entry-modal" class="request-entry-modal" hidden aria-live="polite" aria-modal="true" role="dialog" aria-labelledby="request-entry-title">
+        <div class="request-entry-backdrop" id="request-entry-backdrop"></div>
+        <div class="request-entry-card">
+            <span id="request-entry-countdown" class="request-entry-countdown">10s</span>
+            <p class="request-entry-eyebrow">Solicitudes abiertas</p>
+            <h2 id="request-entry-title">Si no encuentras una pelicula, puedes pedirla aqui</h2>
+            <p class="request-entry-copy">Te tomara un momento mandar la solicitud y la revisaremos para agregarla al catalogo.</p>
+            <div class="request-entry-actions">
+                <button type="button" id="request-entry-open" class="request-entry-primary">Solicitar pelicula</button>
+                <button type="button" id="request-entry-close" class="request-entry-secondary">Cerrar</button>
+            </div>
+            <div class="request-entry-progress">
+                <div id="request-entry-progress-bar" class="request-entry-progress-bar"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="contenedor">
         <div class="estado-pagina estado-cargando">Cargando catalogo...</div>
     </div>

@@ -30,6 +30,12 @@ const requestCountry = document.getElementById("request-country");
 const requestCountryCode = document.getElementById("request-country-code");
 const requestWhatsapp = document.getElementById("request-whatsapp");
 const requestEmail = document.getElementById("request-email");
+const requestEntryModal = document.getElementById("request-entry-modal");
+const requestEntryBackdrop = document.getElementById("request-entry-backdrop");
+const requestEntryOpen = document.getElementById("request-entry-open");
+const requestEntryClose = document.getElementById("request-entry-close");
+const requestEntryCountdown = document.getElementById("request-entry-countdown");
+const requestEntryProgressBar = document.getElementById("request-entry-progress-bar");
 
 const TOAST_MESSAGES = [
   {
@@ -57,10 +63,14 @@ const TOAST_MESSAGES = [
 const TOAST_INITIAL_DELAY_MS = 10 * 1000;
 const TOAST_INTERVAL_MS = 5 * 60 * 1000;
 const TOAST_CYCLE_PAUSE_MS = 30 * 60 * 1000;
-
+const REQUEST_ENTRY_AUTO_CLOSE_MS = 10 * 1000;
 let toastTimeoutId = 0;
 let toastMessageIndex = 0;
 let notificationsStore = [];
+let requestEntryAutoCloseId = 0;
+let requestEntryCountdownId = 0;
+let requestEntryAnimationFrame = 0;
+let requestEntryEndsAt = 0;
 
 function renderEstadoPagina(mensaje, tipo = "cargando") {
   contenedor.innerHTML = `<div class="estado-pagina estado-${tipo}">${mensaje}</div>`;
@@ -129,6 +139,119 @@ function scrollToRequests() {
 
   requestSection.hidden = false;
   requestSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closeRequestEntryModal() {
+  if (requestEntryAutoCloseId) {
+    clearTimeout(requestEntryAutoCloseId);
+    requestEntryAutoCloseId = 0;
+  }
+
+  if (requestEntryCountdownId) {
+    clearInterval(requestEntryCountdownId);
+    requestEntryCountdownId = 0;
+  }
+
+  if (requestEntryAnimationFrame) {
+    cancelAnimationFrame(requestEntryAnimationFrame);
+    requestEntryAnimationFrame = 0;
+  }
+
+  requestEntryModal?.setAttribute("hidden", "");
+}
+
+function updateRequestEntryCountdown() {
+  if (!requestEntryCountdown) {
+    return;
+  }
+
+  const remainingMs = Math.max(0, requestEntryEndsAt - Date.now());
+  const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  requestEntryCountdown.textContent = `${remainingSeconds}s`;
+}
+
+function animateRequestEntryProgress() {
+  if (!requestEntryProgressBar) {
+    return;
+  }
+
+  const remainingMs = Math.max(0, requestEntryEndsAt - Date.now());
+  const progress = REQUEST_ENTRY_AUTO_CLOSE_MS ? remainingMs / REQUEST_ENTRY_AUTO_CLOSE_MS : 0;
+  requestEntryProgressBar.style.transform = `scaleX(${Math.max(0, Math.min(1, progress))})`;
+
+  if (remainingMs > 0) {
+    requestEntryAnimationFrame = requestAnimationFrame(animateRequestEntryProgress);
+  } else {
+    requestEntryAnimationFrame = 0;
+  }
+}
+
+function openRequestEntryModal() {
+  requestEntryModal?.removeAttribute("hidden");
+
+  if (requestEntryAutoCloseId) {
+    clearTimeout(requestEntryAutoCloseId);
+  }
+
+  if (requestEntryCountdownId) {
+    clearInterval(requestEntryCountdownId);
+  }
+
+  if (requestEntryAnimationFrame) {
+    cancelAnimationFrame(requestEntryAnimationFrame);
+  }
+
+  requestEntryEndsAt = Date.now() + REQUEST_ENTRY_AUTO_CLOSE_MS;
+  updateRequestEntryCountdown();
+  animateRequestEntryProgress();
+  requestEntryCountdownId = window.setInterval(updateRequestEntryCountdown, 250);
+
+  requestEntryAutoCloseId = window.setTimeout(() => {
+    closeRequestEntryModal();
+  }, REQUEST_ENTRY_AUTO_CLOSE_MS);
+}
+
+function maybeShowRequestEntryModal() {
+  if (!requestEntryModal) {
+    return;
+  }
+
+  window.setTimeout(openRequestEntryModal, 250);
+}
+
+function maybeOpenRequestFromUrl() {
+  if (!requestSection) {
+    return;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const shouldOpenRequest = params.get("openRequest") === "1";
+  const requestedTitle = String(params.get("requestTitle") || "").trim();
+
+  if (!shouldOpenRequest && !requestedTitle) {
+    return;
+  }
+
+  if (requestedTitle && requestForm) {
+    const titleField = requestForm.querySelector("#request-title");
+
+    if (titleField && !titleField.value.trim()) {
+      titleField.value = requestedTitle;
+    }
+  }
+
+  requestSection.hidden = false;
+
+  window.setTimeout(() => {
+    requestSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 120);
+
+  if (window.history.replaceState) {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("openRequest");
+    url.searchParams.delete("requestTitle");
+    window.history.replaceState({}, document.title, `${url.pathname}${url.hash}`);
+  }
 }
 
 function openNotificationsPanel() {
@@ -752,7 +875,19 @@ function inicializarSolicitudes() {
   requestContactType?.addEventListener("change", updateRequestContactFields);
   requestCountry?.addEventListener("change", updateRequestContactFields);
   requestClose?.addEventListener("click", closeRequestSection);
+  requestEntryClose?.addEventListener("click", closeRequestEntryModal);
+  requestEntryBackdrop?.addEventListener("click", closeRequestEntryModal);
+  requestEntryOpen?.addEventListener("click", () => {
+    closeRequestEntryModal();
+    scrollToRequests();
+  });
   notificationsClose?.addEventListener("click", closeNotificationsPanel);
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      closeRequestEntryModal();
+    }
+  });
 
   requestForm.addEventListener("submit", async event => {
     event.preventDefault();
@@ -901,6 +1036,8 @@ function inicializarNavegacion(data) {
 async function init() {
   renderEstadoPagina("Cargando catalogo...", "cargando");
   inicializarSolicitudes();
+  maybeOpenRequestFromUrl();
+  maybeShowRequestEntryModal();
   notificationsStore = [];
   updateNotificationsCount();
   renderNotificationsPanel();
