@@ -637,6 +637,7 @@ nav a:focus-visible {
   height: 70vh;
   min-height: 300px;
   overflow: hidden;
+  z-index: 1;
 }
 
 .hero-bg {
@@ -652,9 +653,21 @@ nav a:focus-visible {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to top, rgba(7, 12, 22, 0.88) 0%, rgba(7, 12, 22, 0.36) 46%, rgba(7, 12, 22, 0.12) 100%),
+    linear-gradient(to top, rgba(7, 12, 22, 0.96) 0%, rgba(7, 12, 22, 0.48) 42%, rgba(7, 12, 22, 0.14) 100%),
     linear-gradient(90deg, rgba(6, 12, 24, 0.42) 0%, rgba(6, 12, 24, 0.16) 34%, rgba(6, 12, 24, 0.02) 62%),
     rgba(0, 0, 0, 0.22);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 150px;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(7, 19, 31, 0) 0%, rgba(7, 19, 31, 0.78) 68%, #0b2944 100%);
+  pointer-events: none;
 }
 
 .hero-overlay {
@@ -726,11 +739,35 @@ nav a:focus-visible {
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
 }
 
+#contenedor {
+  position: relative;
+  z-index: 3;
+  margin-top: -42px;
+  padding-top: 22px;
+  border-radius: 34px 34px 0 0;
+  background: linear-gradient(180deg, rgba(13, 45, 71, 0.96) 0%, rgba(8, 28, 45, 0.98) 22%, rgba(6, 19, 31, 1) 100%);
+  box-shadow: 0 -18px 40px rgba(2, 9, 16, 0.34);
+}
+
+#contenedor::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 40px;
+  left: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(92, 201, 255, 0.3) 18%, rgba(92, 201, 255, 0.1) 50%, transparent 100%);
+}
+
 /* ================= CATEGORÍA ================= */
 
 .categoria {
   padding-left: 40px;
   margin-bottom: 8px;
+}
+
+#contenedor > .categoria:first-child {
+  padding-top: 6px;
 }
 
 .categoria-head {
@@ -1140,6 +1177,16 @@ nav a:focus-visible {
 /* ================= TABLET ================= */
 
 @media (max-width: 1024px) {
+  #contenedor {
+    margin-top: -34px;
+    border-radius: 28px 28px 0 0;
+  }
+
+  #contenedor::before {
+    right: 30px;
+    left: 30px;
+  }
+
   .notifications-panel {
     top: 96px;
     right: 18px;
@@ -1252,6 +1299,17 @@ nav a:focus-visible {
 /* ================= MOBILE ================= */
 
 @media (max-width: 768px) {
+  #contenedor {
+    margin-top: -24px;
+    padding-top: 16px;
+    border-radius: 24px 24px 0 0;
+  }
+
+  #contenedor::before {
+    right: 20px;
+    left: 20px;
+  }
+
   .toast-stack {
     top: auto;
     bottom: 14px;
@@ -1573,6 +1631,11 @@ nav a:focus-visible {
 /* ================= MOBILE PEQUEÑO ================= */
 
 @media (max-width: 480px) {
+  #contenedor {
+    margin-top: -18px;
+    border-radius: 20px 20px 0 0;
+  }
+
   body {
     padding-top: 154px;
   }
