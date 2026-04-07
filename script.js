@@ -64,6 +64,8 @@ const TOAST_INITIAL_DELAY_MS = 10 * 1000;
 const TOAST_INTERVAL_MS = 5 * 60 * 1000;
 const TOAST_CYCLE_PAUSE_MS = 30 * 60 * 1000;
 const REQUEST_ENTRY_AUTO_CLOSE_MS = 10 * 1000;
+const REQUEST_ENTRY_RESHOW_MS = 5 * 60 * 1000;
+const REQUEST_ENTRY_LAST_SHOWN_KEY = "pelisplus-request-entry-last-shown";
 let toastTimeoutId = 0;
 let toastMessageIndex = 0;
 let notificationsStore = [];
@@ -214,6 +216,18 @@ function openRequestEntryModal() {
 function maybeShowRequestEntryModal() {
   if (!requestEntryModal) {
     return;
+  }
+
+  try {
+    const lastShownAt = Number(localStorage.getItem(REQUEST_ENTRY_LAST_SHOWN_KEY) || "0");
+
+    if (lastShownAt && Date.now() - lastShownAt < REQUEST_ENTRY_RESHOW_MS) {
+      return;
+    }
+
+    localStorage.setItem(REQUEST_ENTRY_LAST_SHOWN_KEY, String(Date.now()));
+  } catch {
+    // Si localStorage falla, mostramos el aviso normalmente.
   }
 
   window.setTimeout(openRequestEntryModal, 250);
